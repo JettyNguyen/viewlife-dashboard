@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ViewLife Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0B1221; --card:#1E2D45; --mid:#162033; --border:#243352;
+  --blue:#3B82F6; --bblue:#60A5FA; --dblue:#1D3461;
+  --green:#10B981; --dgreen:#064E3B;
+  --amber:#F59E0B; --damber:#451A03;
+  --red:#EF4444; --dred:#450A0A;
+  --t1:#F0F4FF; --t2:#94A3B8; --t3:#4A5C73;
+  --f:'Inter',sans-serif; --m:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--f);font-size:14px}
+/* Layout */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--mid);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.logo{padding:16px;border-bottom:1px solid var(--border)}
+.logo .brand{font-size:15px;font-weight:700}
+.logo .sub{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+nav{flex:1;padding:8px;overflow-y:auto}
+.ns{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:10px 8px 4px}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);margin-bottom:2px}
+.ni:hover{background:var(--card);color:var(--t1)}
+.ni.active{background:var(--dblue);color:var(--bblue)}
+.ni .ic{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nbadge{margin-left:auto;background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.sf{padding:12px 14px;border-top:1px solid var(--border)}
+.sf .un{font-weight:600;color:var(--t2);font-size:12px}
+.sf .ro{font-size:10px;color:var(--t3)}
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;min-height:56px;background:var(--mid);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.tt{font-size:15px;font-weight:600}
+.tr{display:flex;align-items:center;gap:10px}
+.wkbadge{background:var(--dblue);color:var(--bblue);font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;font-family:var(--m)}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:var(--f)}
+.btn-p{background:var(--blue);color:#fff}
+.btn-p:hover{background:#2563EB}
+.btn-o{background:transparent;border:1px solid var(--border);color:var(--t2)}
+.btn-o:hover{border-color:var(--blue);color:var(--bblue)}
+.btn-g{background:var(--green);color:#fff}
+.btn-s{padding:4px 10px;font-size:11px}
+.btn-bx{background:#FF5752;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px}
+/* Content */
+.content{flex:1;overflow-y:auto;padding:22px 24px}
+.panel{display:none}.panel.active{display:block}
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+.ctitle{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:10px}
+.chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.chead .ctitle{margin-bottom:0}
+.mb{margin-bottom:16px}
+/* KPI Grid */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.kcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.kcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kacc,var(--blue))}
+.klbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3)}
+.kval{font-size:22px;font-weight:700;font-family:var(--m);margin:6px 0 2px}
+.ksub{font-size:11px;color:var(--t2)}
+.kdelta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;margin-top:4px}
+.up{color:var(--green)}.dn{color:var(--red)}
+/* Grids */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g65{display:grid;grid-template-columns:1.8fr 1fr;gap:16px}
+/* Progress */
+.pwrap{margin-bottom:12px}
+.plbl{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.plbl .pn{color:var(--t2);font-weight:500}
+.plbl .pv{color:var(--t1);font-weight:700;font-family:var(--m)}
+.pbg{background:var(--border);border-radius:4px;height:6px}
+.pfill{height:100%;border-radius:4px;transition:width .6s}
+/* Table */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--border);background:var(--mid)}
+td{padding:9px 12px;font-size:12px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(59,130,246,.05);color:var(--t1)}
+.mono{font-family:var(--m)}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase}
+.b-bl{background:var(--dblue);color:var(--bblue)}
+.b-gr{background:var(--dgreen);color:var(--green)}
+.b-am{background:var(--damber);color:var(--amber)}
+.b-rd{background:var(--dred);color:var(--red)}
+.b-gy{background:#1F2937;color:#9CA3AF}
+/* Funnel item */
+.fi{display:flex;align-items:center;gap:12px;padding:10px 14px;margin-bottom:6px;background:var(--mid);border-radius:8px;border-left:3px solid var(--lc,#4A5C73)}
+.fn{font-size:11px;font-weight:600;color:var(--t2);margin-bottom:3px}
+.fv{font-size:10px;color:var(--t3);margin-left:6px}
+/* Deal card */
+.dcard{background:var(--mid);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+.dname{font-size:13px;font-weight:600}
+.dmeta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.dmeta span{font-size:10px;color:var(--t3)}
+.dacts{display:flex;gap:6px;margin-top:8px}
+/* Activity */
+.aitem{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.aitem:last-child{border-bottom:none}
+.adot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;background:var(--blue)}
+/* Forms */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+label{font-size:11px;font-weight:600;color:var(--t2)}
+input,select,textarea{background:var(--mid);border:1px solid var(--border);color:var(--t1);border-radius:7px;padding:8px 10px;font-size:12px;font-family:var(--f);outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+textarea{resize:vertical;min-height:72px}
+select option{background:var(--card)}
+/* Email preview */
+.eprev{background:#0D1117;border:1px solid var(--border);border-radius:8px;padding:20px;font-family:var(--m);font-size:12px;white-space:pre-wrap;color:#ABB2BF;line-height:1.6;max-height:500px;overflow-y:auto}
+/* Chart */
+.cbox canvas{max-height:240px}
+/* Modal */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+.mo.open{display:flex}
+.md{background:var(--card);border:1px solid var(--border);border-radius:10px;width:560px;max-width:95vw;max-height:88vh;overflow-y:auto;padding:22px}
+.mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.mtitle{font-size:15px;font-weight:700}
+.mclose{cursor:pointer;color:var(--t3);font-size:18px}.mclose:hover{color:var(--t1)}
+.mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+/* Toast */
+.toasts{position:fixed;bottom:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;min-width:220px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.t-ok{border-left:3px solid var(--green)}
+.t-er{border-left:3px solid var(--red)}
+.t-in{border-left:3px solid var(--blue)}
+/* Target pulse */
+.tpulse{background:linear-gradient(135deg,var(--dblue),var(--card));border:1px solid var(--blue);animation:glow 3s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:none}50%{box-shadow:0 0 14px 2px rgba(59,130,246,.2)}}
+/* SKU pill */
+.sku{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--dblue);color:var(--bblue);font-family:var(--m)}
+/* Bitrix helper */
+.bxhelp{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;background:var(--card);border:1px solid #FF5752;border-radius:12px;padding:18px 20px;width:500px;max-width:95vw;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+/* Utils */
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.t-gr{color:var(--green)}.t-am{color:var(--amber)}.t-mu{color:var(--t3)}.t-sm{font-size:11px}.t-xs{font-size:10px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+@media(max-width:900px){.g2,.g65,.fgrid{grid-template-columns:1fr}.kgrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="brand"><span class="dot"></span>ViewLife</div>
+    <div class="sub">REMANn Sales Hub</div>
+  </div>
+  <nav>
+    <div class="ns">Overview</div>
+    <div class="ni active" onclick="goPanel('dashboard')"><span class="ic">📊</span>Dashboard</div>
+    <div class="ni" onclick="goPanel('pipeline')"><span class="ic">🎯</span>Pipeline<span class="nbadge" id="pipe-badge">0</span></div>
+    <div class="ns">Sales</div>
+    <div class="ni" onclick="goPanel('accounts')"><span class="ic">🏢</span>Key Accounts</div>
+    <div class="ni" onclick="goPanel('products')"><span class="ic">💻</span>Products &amp; SKU</div>
+    <div class="ni" onclick="goPanel('margin')"><span class="ic">💰</span>Revenue &amp; Margin</div>
+    <div class="ns">Reports</div>
+    <div class="ni" onclick="goPanel('weekly')"><span class="ic">📝</span>Weekly Report</div>
+    <div class="ni" onclick="goPanel('targets')"><span class="ic">📈</span>Targets</div>
+    <div class="ni" onclick="goPanel('history')"><span class="ic">🗓</span>History</div>
+  </nav>
+  <div class="sf">
+    <div class="un">Nguyen Ngoc Huyen</div>
+    <div class="ro">Sales Manager · AIO Division</div>
+  </div>
+</aside>
+<!-- Main -->
+<div class="main">
+  <header class="topbar">
+    <div class="tt" id="page-title">📊 Dashboard</div>
+    <div class="tr">
+      <div class="wkbadge" id="week-badge"></div>
+      <button class="btn btn-p" onclick="openDealModal()">＋ Add Deal</button>
+      <button class="btn btn-o" onclick="goPanel('weekly')">📤 Report</button>
+    </div>
+  </header>
+  <main class="content">
+
+<!-- ===== DASHBOARD ===== -->
+<div class="panel active" id="panel-dashboard">
+  <div class="kgrid" id="kpi-row"></div>
+  <div class="g65 mb">
+    <div class="card">
+      <div class="chead"><span class="ctitle">Revenue Trend · 8 weeks</span></div>
+      <div class="cbox"><canvas id="ch-rev"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chead"><span class="ctitle">Units by Channel</span></div>
+      <div class="cbox"><canvas id="ch-chn"></canvas></div>
+    </div>
+  </div>
+  <div class="g2 mb">
+    <div class="card">
+      <div class="chead"><span class="ctitle">Pipeline Funnel</span><button class="btn btn-o btn-s" onclick="goPanel('pipeline')">View All</button></div>
+      <div id="funnel-mini"></div>
+    </div>
+    <div class="card">
+      <div class="chead"><span class="ctitle">Units by SKU · This Month</span></div>
+      <div class="cbox"><canvas id="ch-sku"></canvas></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card tpulse">
+      <div class="chead"><span class="ctitle">Weekly Target Progress</span></div>
+      <div id="weekly-targets"></div>
+    </div>
+    <div class="card">
+      <div class="chead"><span class="ctitle">Recent Activity</span><button class="btn btn-o btn-s" onclick="goPanel('accounts')">All</button></div>
+      <div id="recent-acts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PIPELINE ===== -->
+<div class="panel" id="panel-pipeline">
+  <div class="kgrid" id="pipe-kpis"></div>
+  <div class="g65">
+    <div>
+      <div class="card mb">
+        <div class="chead"><span class="ctitle">Open Deals</span>
+          <div style="display:flex;gap:8px">
+            <select id="filter-stage" onchange="renderDeals()" style="width:auto;padding:4px 8px;font-size:11px">
+              <option value="">All Stages</option>
+              <option>Prospect</option><option>Qualified</option>
+              <option>Proposal Sent</option><option>Negotiation</option>
+              <option>Won</option><option>Lost</option>
+            </select>
+            <button class="btn btn-p btn-s" onclick="openDealModal()">＋ New</button>
+          </div>
+        </div>
+        <div id="deal-list"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card mb"><div class="chead"><span class="ctitle">Funnel</span></div><div id="funnel-full"></div></div>
+      <div class="card"><div class="chead"><span class="ctitle">By Channel</span></div><div class="cbox"><canvas id="ch-pch"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ACCOUNTS ===== -->
+<div class="panel" id="panel-accounts">
+  <div class="flex-between mb">
+    <div><div style="font-size:16px;font-weight:700">Key Account Activity</div><div class="t-mu t-sm">Track every interaction · meeting · follow-up</div></div>
+    <button class="btn btn-p" onclick="openActModal()">＋ Log Activity</button>
+  </div>
+  <div class="card mb"><div class="chead"><span class="ctitle">Account Health</span></div><div id="acc-health"></div></div>
+  <div class="card">
+    <div class="chead"><span class="ctitle">Activity Timeline</span>
+      <select id="filter-acc" onchange="renderActs()" style="width:auto;padding:4px 8px;font-size:11px"><option value="">All Accounts</option></select>
+    </div>
+    <div id="act-list"></div>
+  </div>
+</div>
+
+<!-- ===== PRODUCTS ===== -->
+<div class="panel" id="panel-products">
+  <div class="flex-between mb">
+    <div><div style="font-size:16px;font-weight:700">Products &amp; SKU Tracker</div></div>
+    <button class="btn btn-p" onclick="openSaleModal()">＋ Record Sale</button>
+  </div>
+  <div class="kgrid" id="prod-kpis"></div>
+  <div class="card mb">
+    <div class="chead"><span class="ctitle">Pricing Reference · ViewLife v3.1</span></div>
+    <div class="twrap"><table>
+      <thead><tr><th>Model</th><th>Spec</th><th>Import</th><th>List excl.VAT</th><th>Margin</th><th>Shopee SRP</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sku">G5400</span></td><td>Pentium/8GB/256GB/Win11</td><td class="mono">5,782,626₫</td><td class="mono">7,150,000₫</td><td><span class="badge b-gr">19.1%</span></td><td class="mono">8,331,120₫</td></tr>
+        <tr><td><span class="sku">N5095-T</span></td><td>N5095/8GB/128GB/Touch</td><td class="mono">7,244,930₫</td><td class="mono">9,100,000₫</td><td><span class="badge b-gr">~17%</span></td><td class="mono">—</td></tr>
+        <tr><td><span class="sku">1315U</span></td><td>i3-13th/16GB/256GB/Webcam</td><td class="mono">10,742,000₫</td><td class="mono">13,450,000₫</td><td><span class="badge b-gr">18.9%</span></td><td class="mono">15,455,664₫</td></tr>
+        <tr><td><span class="sku">1345U</span></td><td>i5-13th/16GB/SSD/Webcam</td><td class="mono">12,737,183₫</td><td class="mono">15,950,000₫</td><td><span class="badge b-gr">19.1%</span></td><td class="mono">17,524,080₫</td></tr>
+        <tr><td><span class="sku">1345U-B</span></td><td>i5-13th/16GB/256GB/Black</td><td class="mono">10,884,014₫</td><td class="mono">13,650,000₫</td><td><span class="badge b-gr">~19%</span></td><td class="mono">—</td></tr>
+        <tr><td><span class="sku">1345U-B512</span></td><td>i5-13th/16GB/512GB/Black</td><td class="mono">14,149,859₫</td><td class="mono">17,700,000₫</td><td><span class="badge b-gr">~19%</span></td><td class="mono">—</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="g2 mb">
+    <div class="card"><div class="chead"><span class="ctitle">Units by Model</span></div><div class="cbox"><canvas id="ch-units"></canvas></div></div>
+    <div class="card"><div class="chead"><span class="ctitle">Revenue by Model</span></div><div class="cbox"><canvas id="ch-rmod"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="chead"><span class="ctitle">Sales Log</span></div>
+    <div class="twrap"><table>
+      <thead><tr><th>Date</th><th>Model</th><th>Qty</th><th>Channel</th><th>Unit Price</th><th>Revenue</th><th>Margin</th><th>Account</th></tr></thead>
+      <tbody id="sales-log"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== MARGIN ===== -->
+<div class="panel" id="panel-margin">
+  <div class="mb"><div style="font-size:16px;font-weight:700">Revenue &amp; Margin</div><div class="t-mu t-sm">VAT 8% · Max discount 16% Platinum ≥100u</div></div>
+  <div class="kgrid" id="margin-kpis"></div>
+  <div class="g2 mb">
+    <div class="card"><div class="chead"><span class="ctitle">Monthly Revenue vs Target</span></div><div class="cbox"><canvas id="ch-mrev"></canvas></div></div>
+    <div class="card"><div class="chead"><span class="ctitle">Margin by Channel</span></div><div class="cbox"><canvas id="ch-mch"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="chead"><span class="ctitle">Discount Tier Reference</span></div>
+    <div class="twrap"><table>
+      <thead><tr><th>Tier</th><th>Base</th><th>≥50u</th><th>≥100u</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Authorized</td><td>-5%</td><td>-7%</td><td>-9%</td><td class="t-mu">Entry level</td></tr>
+        <tr><td>Silver</td><td>-8%</td><td>-10%</td><td>-12%</td><td class="t-mu">Regional</td></tr>
+        <tr><td>Gold</td><td>-12%</td><td>-14%</td><td>-15%</td><td class="t-mu">Key accounts</td></tr>
+        <tr><td>Platinum</td><td>-14%</td><td>-15%</td><td class="t-am">-16% MAX</td><td class="t-mu">National chains</td></tr>
+        <tr><td>Online/Shopee</td><td>+12% vs Auth</td><td>—</td><td>—</td><td class="t-mu">Clause 8.1</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ===== WEEKLY ===== -->
+<div class="panel" id="panel-weekly">
+  <div class="flex-between mb">
+    <div><div style="font-size:16px;font-weight:700">Weekly Report</div><div class="t-mu t-sm">Điền → Generate → Gửi Bitrix24</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-o" onclick="loadLastReport()">📋 Load Last</button>
+      <button class="btn btn-g" onclick="generateReport()">⚡ Generate</button>
+    </div>
+  </div>
+  <div class="g65">
+    <div>
+      <div class="card mb">
+        <div class="ctitle">Report Header</div>
+        <div class="fgrid">
+          <div class="fg"><label>Period</label><input id="r-period" placeholder="18-22 Aug 2026"/></div>
+          <div class="fg"><label>Date</label><input type="date" id="r-date"/></div>
+          <div class="fg"><label>Week Revenue (VND)</label><input type="number" id="r-rev" placeholder="250000000"/></div>
+          <div class="fg"><label>Units Sold</label><input type="number" id="r-units" placeholder="20"/></div>
+        </div>
+      </div>
+      <div class="card mb">
+        <div class="chead"><span class="ctitle">1. Key Account Activity</span><button class="btn btn-o btn-s" onclick="addAccRow()">+ Row</button></div>
+        <div class="twrap"><table>
+          <thead><tr><th>Date</th><th>Account</th><th>Meeting</th><th>Outcome</th><th>Follow-up</th><th></th></tr></thead>
+          <tbody id="r-acc-rows">
+            <tr>
+              <td><input placeholder="20/08" style="width:70px;padding:4px;font-size:11px"></td>
+              <td><input placeholder="Pico" style="width:90px;padding:4px;font-size:11px"></td>
+              <td><input placeholder="Detail" style="width:120px;padding:4px;font-size:11px"></td>
+              <td><input placeholder="Outcome" style="width:110px;padding:4px;font-size:11px"></td>
+              <td><input placeholder="Next step" style="width:100px;padding:4px;font-size:11px"></td>
+              <td><button class="btn btn-o btn-s" onclick="this.closest('tr').remove()">✕</button></td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card mb">
+        <div class="chead"><span class="ctitle">2. Pipeline</span><button class="btn btn-o btn-s" onclick="addPipeRow()">+ Row</button></div>
+        <div class="twrap"><table>
+          <thead><tr><th>Account</th><th>Product/Qty</th><th>Value</th><th>Stage</th><th>Close</th><th></th></tr></thead>
+          <tbody id="r-pipe-rows">
+            <tr>
+              <td><input placeholder="Account" style="width:90px;padding:4px;font-size:11px"></td>
+              <td><input placeholder="1315U x20" style="width:90px;padding:4px;font-size:11px"></td>
+              <td><input placeholder="270M" style="width:80px;padding:4px;font-size:11px"></td>
+              <td><select style="width:100px;padding:4px;font-size:11px"><option>Prospect</option><option>Qualified</option><option>Proposal Sent</option><option>Negotiation</option></select></td>
+              <td><input placeholder="Sep 26" style="width:70px;padding:4px;font-size:11px"></td>
+              <td><button class="btn btn-o btn-s" onclick="this.closest('tr').remove()">✕</button></td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card mb"><div class="ctitle">3. Issues &amp; Challenges</div><textarea id="r-issues" rows="3" placeholder="Stock shortage, payment terms..."></textarea></div>
+      <div class="card mb"><div class="ctitle">4. Plan for Next Week</div><textarea id="r-plan" rows="3" placeholder="Follow-up Pico, 3 new prospects..."></textarea></div>
+      <div class="card mb"><div class="ctitle">5. Support Requested (CEO)</div><textarea id="r-support" rows="2" placeholder="Discount approval, marketing budget..."></textarea></div>
+
+      <!-- BITRIX24 BLOCK -->
+      <div class="card mb" style="border-left:3px solid #FF5752">
+        <div class="chead" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:18px">🟥</span>
+            <span style="font-size:13px;font-weight:700;color:#FF5752">Bitrix24 Webmail</span>
+          </div>
+          <span id="email-status" style="background:#1F2937;color:#9CA3AF;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase">Chưa cấu hình</span>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;margin-bottom:5px;font-size:11px;font-weight:600;color:var(--t2)">Bitrix24 Domain</label>
+          <div style="display:flex;align-items:center">
+            <span style="background:var(--mid);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;padding:8px 10px;font-size:12px;color:var(--t3);white-space:nowrap">https://</span>
+            <input id="e-domain" type="text" placeholder="remann.bitrix24.vn" style="border-radius:0 7px 7px 0;border-left:none;flex:1" oninput="saveEmailConfig()"/>
+          </div>
+        </div>
+        <div class="fgrid" style="margin-bottom:10px">
+          <div class="fg"><label>Email công ty của bạn</label><input id="e-from" type="email" placeholder="huyen@remann.vn" oninput="saveEmailConfig()"/></div>
+          <div class="fg"><label>Tên hiển thị</label><input id="e-name" type="text" placeholder="Nguyen Ngoc Huyen" oninput="saveEmailConfig()"/></div>
+        </div>
+        <div class="fg" style="margin-bottom:10px"><label>To — Email sếp nhận báo cáo</label><input id="e-to" type="email" placeholder="ceo@remann.vn" oninput="saveEmailConfig()"/></div>
+        <div class="fg" style="margin-bottom:10px"><label>CC <span class="t-mu" style="font-weight:400">(nhiều email, cách nhau dấu phẩy)</span></label><input id="e-cc" type="text" placeholder="sales@remann.vn, ops@remann.vn" oninput="saveEmailConfig()"/></div>
+        <div class="fg" style="margin-bottom:14px"><label>Subject prefix</label><input id="e-subj" type="text" placeholder="[Weekly Sales Report] ViewLife AIO" oninput="saveEmailConfig()"/></div>
+        <div style="padding:10px 12px;background:rgba(255,87,82,.07);border:1px solid rgba(255,87,82,.2);border-radius:7px;font-size:11px;color:var(--t2);line-height:1.75;margin-bottom:14px">
+          <strong style="color:#FF5752">⚙ Cách dùng:</strong> Nhấn nút đỏ → Bitrix24 mở tab mới, tự điền To/Subject/nội dung. Chỉ cần nhấn <strong>Gửi</strong> trong Bitrix24.<br>
+          <span class="t-mu">Nếu nội dung trống: dùng nút Copy rồi paste thủ công vào Bitrix24.</span>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:7px">📋 Gửi nhanh</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-o btn-s" onclick="applyPreset('ceo')">🎯 CEO Only</button>
+            <button class="btn btn-o btn-s" onclick="applyPreset('team')">👥 Full Team</button>
+            <button class="btn btn-o btn-s" onclick="applyPreset('mgmt')">🏢 Management</button>
+            <button class="btn btn-p btn-s" onclick="openModal('modal-presets')">⚙ Chỉnh sửa</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-bx" onclick="sendEmail('bitrix')">🟥 Mở Bitrix24 Mail &amp; Gửi</button>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn btn-o" style="flex:1;justify-content:center" onclick="copyReport()">📋 Copy nội dung</button>
+        <button class="btn btn-o" style="flex:1;justify-content:center" onclick="sendEmail('mailto')">📧 Mailto</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" style="flex:1;justify-content:center" onclick="saveReport()">💾 Lưu báo cáo</button>
+        <button class="btn btn-o" style="flex:1;justify-content:center" onclick="printReport()">🖨 Print/PDF</button>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="position:sticky;top:0">
+        <div class="chead"><span class="ctitle">Email Preview</span><button class="btn btn-o btn-s" onclick="generateReport()">↻</button></div>
+        <div class="eprev" id="email-preview">Click ⚡ Generate để xem trước.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TARGETS ===== -->
+<div class="panel" id="panel-targets">
+  <div class="flex-between mb">
+    <div><div style="font-size:16px;font-weight:700">Sales Targets</div><div class="t-mu t-sm">Weekly · Monthly · Q3</div></div>
+    <button class="btn btn-p" onclick="openTargetModal()">⚙ Set Targets</button>
+  </div>
+  <div class="kgrid" id="tgt-kpis"></div>
+  <div class="g2 mb">
+    <div class="card"><div class="chead"><span class="ctitle">Weekly Progress</span></div><div id="weekly-prog"></div></div>
+    <div class="card"><div class="chead"><span class="ctitle">Monthly Progress</span></div><div id="monthly-prog"></div></div>
+  </div>
+  <div class="card"><div class="chead"><span class="ctitle">Q3 Roadmap</span></div><div class="cbox"><canvas id="ch-q3" style="max-height:200px"></canvas></div></div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div class="panel" id="panel-history">
+  <div class="mb"><div style="font-size:16px;font-weight:700">Report History</div><div class="t-mu t-sm">All saved weekly reports</div></div>
+  <div class="card">
+    <div class="twrap"><table>
+      <thead><tr><th>Week</th><th>Period</th><th>Revenue</th><th>Units</th><th>Issues</th><th>Saved</th><th></th></tr></thead>
+      <tbody id="hist-body"></tbody>
+    </table></div>
+    <div id="hist-empty" style="text-align:center;padding:32px;color:var(--t3)">No reports saved yet.</div>
+  </div>
+</div>
+
+  </main>
+</div>
+</div>
+
+<!-- Bitrix Helper -->
+<div class="bxhelp" id="bx-helper">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-size:14px;font-weight:700;color:#FF5752">🟥 Bitrix24 đã mở</div>
+    <span onclick="document.getElementById('bx-helper').style.display='none'" style="cursor:pointer;color:var(--t3);font-size:18px">✕</span>
+  </div>
+  <div style="font-size:12px;color:var(--t2);line-height:1.8">
+    ✅ To: <span id="bh-to" style="color:var(--bblue);font-family:var(--m)"></span><br>
+    ✅ Subject: <span id="bh-subj" style="color:var(--bblue);font-family:var(--m);font-size:11px"></span><br>
+    <span class="t-mu">Nếu thân email trống → nhấn Copy rồi paste vào Bitrix24.</span>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button onclick="copyReport()" style="flex:1;background:#FF5752;color:#fff;border:none;border-radius:7px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">📋 Copy nội dung</button>
+    <button onclick="window.open('https://'+document.getElementById('bh-dom').textContent+'/mail/','_blank')" style="flex:1;background:transparent;color:var(--bblue);border:1px solid var(--border);border-radius:7px;padding:8px;font-size:12px;cursor:pointer">🔗 Mở Bitrix24</button>
+  </div>
+  <span id="bh-dom" style="display:none"></span>
+</div>
+
+<!-- Toasts -->
+<div class="toasts" id="toasts"></div>
+
+<!-- Modal: Deal -->
+<div class="mo" id="modal-deal">
+  <div class="md">
+    <div class="mhead"><span class="mtitle">Add / Edit Deal</span><span class="mclose" onclick="closeModal('modal-deal')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Account</label><input id="d-acc" placeholder="Pico Vietnam"/></div>
+      <div class="fg"><label>Contact</label><input id="d-con" placeholder="Name / Role"/></div>
+      <div class="fg"><label>Model</label>
+        <select id="d-mod"><option>G5400</option><option>N5095-TOUCH</option><option>1315U</option><option>1345U</option><option>1345U-Black</option><option>1345U-Black 512</option><option>Mixed</option></select>
+      </div>
+      <div class="fg"><label>Qty</label><input type="number" id="d-qty"/></div>
+      <div class="fg"><label>Tier</label>
+        <select id="d-tier"><option>Authorized</option><option>Silver</option><option>Gold</option><option>Platinum</option><option>Online/Shopee</option></select>
+      </div>
+      <div class="fg"><label>Stage</label>
+        <select id="d-stage"><option>Prospect</option><option>Qualified</option><option>Proposal Sent</option><option>Negotiation</option><option>Won</option><option>Lost</option></select>
+      </div>
+      <div class="fg"><label>Est. Value (VND)</label><input type="number" id="d-val"/></div>
+      <div class="fg"><label>Close Date</label><input type="date" id="d-close"/></div>
+      <div class="fg full"><label>Notes</label><textarea id="d-notes" rows="2"></textarea></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-o" onclick="closeModal('modal-deal')">Cancel</button><button class="btn btn-p" onclick="saveDeal()">Save Deal</button></div>
+  </div>
+</div>
+
+<!-- Modal: Activity -->
+<div class="mo" id="modal-act">
+  <div class="md">
+    <div class="mhead"><span class="mtitle">Log Activity</span><span class="mclose" onclick="closeModal('modal-act')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Date</label><input type="date" id="a-date"/></div>
+      <div class="fg"><label>Account</label><input id="a-acc"/></div>
+      <div class="fg"><label>Contact</label><input id="a-con"/></div>
+      <div class="fg"><label>Type</label><select id="a-type"><option>Meeting</option><option>Call</option><option>Email</option><option>Demo</option><option>Proposal</option><option>Follow-up</option></select></div>
+      <div class="fg full"><label>Details</label><textarea id="a-det" rows="2"></textarea></div>
+      <div class="fg full"><label>Outcome</label><textarea id="a-out" rows="2"></textarea></div>
+      <div class="fg full"><label>Follow-up Action</label><input id="a-fu"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-o" onclick="closeModal('modal-act')">Cancel</button><button class="btn btn-p" onclick="saveActivity()">Save</button></div>
+  </div>
+</div>
+
+<!-- Modal: Sale -->
+<div class="mo" id="modal-sale">
+  <div class="md">
+    <div class="mhead"><span class="mtitle">Record Sale</span><span class="mclose" onclick="closeModal('modal-sale')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Date</label><input type="date" id="s-date"/></div>
+      <div class="fg"><label>Model</label><select id="s-mod"><option>G5400</option><option>N5095-TOUCH</option><option>1315U</option><option>1345U</option><option>1345U-Black</option><option>1345U-Black 512</option></select></div>
+      <div class="fg"><label>Qty</label><input type="number" id="s-qty"/></div>
+      <div class="fg"><label>Unit Price (excl.VAT)</label><input type="number" id="s-price"/></div>
+      <div class="fg"><label>Tier</label><select id="s-tier"><option>Authorized</option><option>Silver</option><option>Gold</option><option>Platinum</option><option>Online/Shopee</option></select></div>
+      <div class="fg"><label>Account</label><input id="s-acc"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-o" onclick="closeModal('modal-sale')">Cancel</button><button class="btn btn-p" onclick="saveSale()">Save</button></div>
+  </div>
+</div>
+
+<!-- Modal: Targets -->
+<div class="mo" id="modal-targets">
+  <div class="md">
+    <div class="mhead"><span class="mtitle">Set Sales Targets</span><span class="mclose" onclick="closeModal('modal-targets')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Weekly Revenue (VND)</label><input type="number" id="t-wr"/></div>
+      <div class="fg"><label>Weekly Units</label><input type="number" id="t-wu"/></div>
+      <div class="fg"><label>Monthly Revenue (VND)</label><input type="number" id="t-mr"/></div>
+      <div class="fg"><label>Monthly Units</label><input type="number" id="t-mu"/></div>
+      <div class="fg"><label>Q3 Revenue (VND)</label><input type="number" id="t-q3"/></div>
+      <div class="fg"><label>New Accounts/Month</label><input type="number" id="t-ac"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-o" onclick="closeModal('modal-targets')">Cancel</button><button class="btn btn-p" onclick="saveTargets()">Save</button></div>
+  </div>
+</div>
+
+<!-- Modal: Presets -->
+<div class="mo" id="modal-presets">
+  <div class="md">
+    <div class="mhead"><span class="mtitle">⚙ Danh sách gửi nhanh</span><span class="mclose" onclick="closeModal('modal-presets')">✕</span></div>
+    <p style="font-size:12px;color:var(--t2);margin-bottom:16px">Điền sẵn email cho từng nhóm.</p>
+    <div style="font-size:11px;font-weight:700;color:var(--bblue);margin-bottom:8px">🎯 CEO Only</div>
+    <div class="fgrid" style="margin-bottom:14px">
+      <div class="fg"><label>To</label><input id="p-ceo-to" type="email" placeholder="ceo@remann.vn"/></div>
+      <div class="fg"><label>CC</label><input id="p-ceo-cc" type="text" placeholder=""/></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px">👥 Full Team</div>
+    <div class="fgrid" style="margin-bottom:14px">
+      <div class="fg"><label>To</label><input id="p-team-to" type="email" placeholder="ceo@remann.vn"/></div>
+      <div class="fg"><label>CC</label><input id="p-team-cc" type="text" placeholder="sales@remann.vn, ops@remann.vn"/></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--amber);margin-bottom:8px">🏢 Management</div>
+    <div class="fgrid" style="margin-bottom:20px">
+      <div class="fg"><label>To</label><input id="p-mgmt-to" type="email" placeholder="ceo@remann.vn"/></div>
+      <div class="fg"><label>CC</label><input id="p-mgmt-cc" type="text" placeholder="director@remann.vn"/></div>
+    </div>
+    <div class="mfoot"><button class="btn btn-o" onclick="closeModal('modal-presets')">Huỷ</button><button class="btn btn-p" onclick="savePresets()">Lưu</button></div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// DATA LAYER
+// =====================================================
+var DB = {
+  get: function(key) {
+    try { return JSON.parse(localStorage.getItem("vl_" + key)); } catch(e) { return null; }
+  },
+  set: function(key, val) {
+    try { localStorage.setItem("vl_" + key, JSON.stringify(val)); } catch(e) {}
+  },
+  deals: function() { return DB.get("deals") || []; },
+  acts: function() { return DB.get("acts") || []; },
+  sales: function() { return DB.get("sales") || []; },
+  reports: function() { return DB.get("reports") || []; },
+  targets: function() {
+    return DB.get("targets") || {wr:250000000,wu:20,mr:1000000000,mu:80,q3:3000000000,ac:5};
+  }
+};
+
+// Seed sample data once
+if (!DB.get("seeded")) {
+  var w = function(n) { var d = new Date(); d.setDate(d.getDate()-n); return d.toISOString().split("T")[0]; };
+  DB.set("deals", [
+    {id:1,acc:"Pico Vietnam",con:"Category Mgr",mod:"1315U",qty:60,tier:"Platinum",stage:"Negotiation",val:740000000,close:"2026-09-15",notes:"Awaiting PO"},
+    {id:2,acc:"Media Mart",con:"Procurement",mod:"1345U-Black",qty:40,tier:"Gold",stage:"Proposal Sent",val:560000000,close:"2026-09-30",notes:"Sent 18/08"},
+    {id:3,acc:"NDC School",con:"IT Director",mod:"1315U",qty:20,tier:"Authorized",stage:"Qualified",val:255550000,close:"2026-10-10",notes:"Demo 28/08"},
+    {id:4,acc:"FPT Shop",con:"Chain Mgr",mod:"G5400",qty:50,tier:"Silver",stage:"Prospect",val:325000000,close:"2026-10-30",notes:"Initial meeting"},
+    {id:5,acc:"ABC Corp",con:"CFO",mod:"1345U",qty:15,tier:"Gold",stage:"Won",val:217500000,close:"2026-08-10",notes:"Delivered"}
+  ]);
+  DB.set("acts", [
+    {id:1,date:"2026-08-20",acc:"Pico Vietnam",con:"HOD",type:"Meeting",det:"Met HOD re AIO refresh",out:"Transferred to category manager",fu:"Schedule next meeting"},
+    {id:2,date:"2026-08-19",acc:"Media Mart",con:"Procurement",type:"Call",det:"Follow-up on proposal",out:"Requested 2% extra discount",fu:"Escalate to management"}
+  ]);
+  DB.set("sales", [
+    {id:1,date:"2026-08-10",mod:"1345U",qty:15,price:14487500,tier:"Gold",acc:"ABC Corp",margin:0.191},
+    {id:2,date:"2026-08-05",mod:"G5400",qty:25,price:6792500,tier:"Authorized",acc:"TechWorld HCM",margin:0.191},
+    {id:3,date:"2026-07-28",mod:"1315U",qty:30,price:12777500,tier:"Silver",acc:"FPT Retail",margin:0.152},
+    {id:4,date:"2026-07-20",mod:"1345U-Black",qty:20,price:13115000,tier:"Gold",acc:"DMX Pilot",margin:0.103}
+  ]);
+  DB.set("seeded", true);
+}
+
+// =====================================================
+// UTILS
+// =====================================================
+function fmt(n) { return new Intl.NumberFormat("vi-VN").format(Math.round(n)) + "\u20ab"; }
+function fmtM(n) {
+  if (n >= 1e9) return (n/1e9).toFixed(2) + "B\u20ab";
+  if (n >= 1e6) return (n/1e6).toFixed(1) + "M\u20ab";
+  return fmt(n);
+}
+function today() { return new Date().toISOString().split("T")[0]; }
+function weekNum() {
+  var d = new Date(), s = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - s) / 86400000 + s.getDay() + 1) / 7);
+}
+function monthStart() {
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-01";
+}
+function weekStart() {
+  var d = new Date();
+  d.setDate(d.getDate() - d.getDay() + 1);
+  return d.toISOString().split("T")[0];
+}
+function stageBadge(s) {
+  var cls = {Prospect:"b-gy",Qualified:"b-bl","Proposal Sent":"b-am",Negotiation:"b-am",Won:"b-gr",Lost:"b-rd"};
+  return "<span class=\"badge " + (cls[s]||"b-gy") + "\">" + s + "</span>";
+}
+function toast(msg, type) {
+  var w = document.getElementById("toasts");
+  var el = document.createElement("div");
+  var icon = type === "success" ? "\u2705" : type === "error" ? "\u274c" : "\u2139\ufe0f";
+  el.className = "toast t-" + (type === "success" ? "ok" : type === "error" ? "er" : "in");
+  el.innerHTML = "<span>" + icon + "</span><span>" + msg + "</span>";
+  w.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3000);
+}
+
+var charts = {};
+function killChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+var CHART_OPTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: "#94A3B8", font: { size: 10 } } } },
+  scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73" }, grid: { color: "#243352" } } }
+};
+
+// =====================================================
+// NAVIGATION
+// =====================================================
+var PANEL_TITLES = {
+  dashboard:"\ud83d\udcca Dashboard", pipeline:"\ud83c\udfaf Pipeline",
+  accounts:"\ud83c\udfe2 Key Accounts", products:"\ud83d\udcbb Products & SKU",
+  margin:"\ud83d\udcb0 Revenue & Margin", weekly:"\ud83d\udcdd Weekly Report",
+  targets:"\ud83d\udcc8 Targets", history:"\ud83d\uddd3 History"
+};
+
+function goPanel(name) {
+  document.querySelectorAll(".panel").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll(".ni").forEach(function(n) { n.classList.remove("active"); });
+  var panel = document.getElementById("panel-" + name);
+  if (panel) panel.classList.add("active");
+  document.querySelectorAll(".ni").forEach(function(n) {
+    if (n.getAttribute("onclick") && n.getAttribute("onclick").indexOf("'" + name + "'") !== -1) {
+      n.classList.add("active");
+    }
+  });
+  var titleEl = document.getElementById("page-title");
+  if (titleEl) titleEl.textContent = PANEL_TITLES[name] || "";
+  try {
+    if (name === "dashboard") renderDashboard();
+    if (name === "pipeline")  renderPipeline();
+    if (name === "accounts")  renderAccounts();
+    if (name === "products")  renderProducts();
+    if (name === "margin")    renderMargin();
+    if (name === "targets")   renderTargets();
+    if (name === "history")   renderHistory();
+  } catch(e) { console.error("Panel render error:", e); }
+}
+
+// =====================================================
+// DASHBOARD
+// =====================================================
+function renderDashboard() {
+  var sales = DB.sales();
+  var deals = DB.deals();
+  var tgt = DB.targets();
+  var ms = monthStart();
+  var ws = weekStart();
+
+  var mSales = sales.filter(function(s) { return s.date >= ms; });
+  var mRev = mSales.reduce(function(a,s) { return a + s.price * s.qty; }, 0);
+  var mUnits = mSales.reduce(function(a,s) { return a + s.qty; }, 0);
+  var wSales = sales.filter(function(s) { return s.date >= ws; });
+  var wRev = wSales.reduce(function(a,s) { return a + s.price * s.qty; }, 0);
+  var wUnits = wSales.reduce(function(a,s) { return a + s.qty; }, 0);
+  var avgM = sales.length ? sales.reduce(function(a,s) { return a + s.margin; }, 0) / sales.length : 0;
+  var openDeals = deals.filter(function(d) { return d.stage !== "Won" && d.stage !== "Lost"; });
+  var pipeVal = openDeals.reduce(function(a,d) { return a + d.val; }, 0);
+  var wonDeals = deals.filter(function(d) { return d.stage === "Won"; });
+  var winRate = deals.length ? Math.round(wonDeals.length / deals.length * 100) : 0;
+
+  // KPI Row
+  var mRevPct = tgt.mr > 0 ? Math.round(mRev / tgt.mr * 100) : 0;
+  document.getElementById("kpi-row").innerHTML =
+    kpiCard("Monthly Revenue", fmtM(mRev), "Target: " + fmtM(tgt.mr), mRevPct + "%", mRev >= tgt.mr, mRev >= tgt.mr ? "var(--green)" : "var(--blue)") +
+    kpiCard("Units (Month)", mUnits, "Target: " + tgt.mu + " units", mUnits + "/" + tgt.mu, mUnits >= tgt.mu, "var(--green)") +
+    kpiCard("Open Pipeline", fmtM(pipeVal), openDeals.length + " deals", "", true, "var(--amber)") +
+    kpiCard("Avg Margin", (avgM*100).toFixed(1) + "%", "Across all channels", "", true, "var(--blue)") +
+    kpiCard("Win Rate", winRate + "%", wonDeals.length + "/" + deals.length + " deals", "", true, "var(--green)");
+
+  // Revenue trend chart
+  killChart("rev");
+  var labels = [], revData = [];
+  for (var i = 7; i >= 0; i--) {
+    var dd = new Date(); dd.setDate(dd.getDate() - i*7);
+    var ws2 = new Date(dd); ws2.setDate(ws2.getDate() - 6);
+    var ws2s = ws2.toISOString().split("T")[0];
+    var dd2s = dd.toISOString().split("T")[0];
+    var r = sales.filter(function(s) { return s.date >= ws2s && s.date <= dd2s; })
+                 .reduce(function(a,s) { return a + s.price * s.qty; }, 0);
+    labels.push("W" + (weekNum() - 7 + i));
+    revData.push(r);
+  }
+  var tgtLine = labels.map(function() { return tgt.wr; });
+  charts["rev"] = new Chart(document.getElementById("ch-rev"), {
+    type: "line",
+    data: { labels: labels, datasets: [
+      { label: "Revenue", data: revData, borderColor: "#3B82F6", backgroundColor: "rgba(59,130,246,.1)", tension: .4, fill: true, pointRadius: 4 },
+      { label: "Target", data: tgtLine, borderColor: "rgba(245,158,11,.5)", borderDash: [5,5], pointRadius: 0, fill: false }
+    ]},
+    options: Object.assign({}, CHART_OPTS, { scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73", callback: function(v) { return fmtM(v); } }, grid: { color: "#243352" } } } })
+  });
+
+  // Channel chart
+  killChart("chn");
+  var byCh = {};
+  sales.forEach(function(s) { byCh[s.tier] = (byCh[s.tier] || 0) + s.qty; });
+  charts["chn"] = new Chart(document.getElementById("ch-chn"), {
+    type: "doughnut",
+    data: { labels: Object.keys(byCh), datasets: [{ data: Object.values(byCh), backgroundColor: ["#3B82F6","#10B981","#F59E0B","#8B5CF6","#EF4444"], borderWidth: 0 }] },
+    options: { plugins: { legend: { position: "bottom", labels: { color: "#94A3B8", font: { size: 10 }, padding: 8 } } }, cutout: "65%", responsive: true, maintainAspectRatio: false }
+  });
+
+  // Funnel mini
+  var stages = ["Prospect","Qualified","Proposal Sent","Negotiation","Won"];
+  var sColors = ["#4A5C73","#3B82F6","#F59E0B","#F97316","#10B981"];
+  var fHTML = "";
+  stages.forEach(function(st, i) {
+    var cnt = deals.filter(function(d) { return d.stage === st; }).length;
+    var val = deals.filter(function(d) { return d.stage === st; }).reduce(function(a,d) { return a + d.val; }, 0);
+    var pct = deals.length ? cnt / deals.length * 100 : 0;
+    fHTML += "<div class=\"fi\" style=\"--lc:" + sColors[i] + "\">" +
+      "<div style=\"min-width:28px;text-align:center;font-size:18px;font-weight:700;font-family:var(--m);color:" + sColors[i] + "\">" + cnt + "</div>" +
+      "<div style=\"flex:1\"><div class=\"fn\">" + st + "<span class=\"fv\">" + fmtM(val) + "</span></div>" +
+      "<div class=\"pbg\"><div class=\"pfill\" style=\"width:" + pct + "%;background:" + sColors[i] + "\"></div></div></div></div>";
+  });
+  document.getElementById("funnel-mini").innerHTML = fHTML;
+
+  // SKU chart
+  killChart("sku");
+  var byMod = {};
+  mSales.forEach(function(s) { byMod[s.mod] = (byMod[s.mod] || 0) + s.qty; });
+  charts["sku"] = new Chart(document.getElementById("ch-sku"), {
+    type: "bar",
+    data: { labels: Object.keys(byMod), datasets: [{ label: "Units", data: Object.values(byMod), backgroundColor: "#3B82F6", borderRadius: 4 }] },
+    options: Object.assign({}, CHART_OPTS, { plugins: { legend: { display: false } } })
+  });
+
+  // Weekly targets
+  var p1 = Math.min(wRev / (tgt.wr || 1) * 100, 100);
+  var p2 = Math.min(wUnits / (tgt.wu || 1) * 100, 100);
+  var p3 = Math.min(mRev / (tgt.mr || 1) * 100, 100);
+  document.getElementById("weekly-targets").innerHTML =
+    progBar("Week Revenue", fmtM(wRev) + " / " + fmtM(tgt.wr), p1, p1 >= 100 ? "var(--green)" : "var(--blue)") +
+    progBar("Week Units", wUnits + " / " + tgt.wu, p2, p2 >= 100 ? "var(--green)" : "var(--amber)") +
+    progBar("Month Revenue", fmtM(mRev) + " / " + fmtM(tgt.mr), p3, p3 >= 100 ? "var(--green)" : "var(--blue)");
+
+  // Recent activities
+  var acts = DB.acts().sort(function(a,b) { return b.date.localeCompare(a.date); }).slice(0, 4);
+  var aHTML = acts.map(function(a) {
+    return "<div class=\"aitem\"><div class=\"adot\"></div><div>" +
+      "<div style=\"font-size:10px;color:var(--t3)\">" + a.date + " \u00b7 " + a.type + "</div>" +
+      "<div style=\"font-size:12px;font-weight:600\">" + a.acc + "</div>" +
+      "<div class=\"t-sm t-mu\">" + a.det + "</div>" +
+      (a.out ? "<div style=\"font-size:11px;color:var(--green)\">\u2192 " + a.out + "</div>" : "") +
+      "</div></div>";
+  }).join("");
+  document.getElementById("recent-acts").innerHTML = aHTML || "<div class=\"t-mu\" style=\"padding:20px;text-align:center\">No activities yet</div>";
+}
+
+function kpiCard(label, val, sub, delta, isUp, accentColor) {
+  return "<div class=\"kcard\" style=\"--kacc:" + accentColor + "\">" +
+    "<div class=\"klbl\">" + label + "</div>" +
+    "<div class=\"kval\">" + val + "</div>" +
+    "<div class=\"ksub\">" + sub + "</div>" +
+    (delta ? "<div class=\"kdelta " + (isUp ? "up" : "dn") + "\">" + (isUp ? "\u25b2" : "\u25bc") + " " + delta + "</div>" : "") +
+    "</div>";
+}
+function progBar(name, val, pct, color) {
+  return "<div class=\"pwrap\"><div class=\"plbl\"><span class=\"pn\">" + name + "</span><span class=\"pv\">" + val + "</span></div>" +
+    "<div class=\"pbg\"><div class=\"pfill\" style=\"width:" + pct + "%;background:" + color + "\"></div></div></div>";
+}
+
+// =====================================================
+// PIPELINE
+// =====================================================
+function renderPipeline() {
+  var deals = DB.deals();
+  var open = deals.filter(function(d) { return d.stage !== "Won" && d.stage !== "Lost"; });
+  var won = deals.filter(function(d) { return d.stage === "Won"; });
+  var pipeVal = open.reduce(function(a,d) { return a + d.val; }, 0);
+  var wonVal = won.reduce(function(a,d) { return a + d.val; }, 0);
+  var wr = deals.length ? Math.round(won.length / deals.length * 100) : 0;
+
+  document.getElementById("pipe-badge").textContent = open.length;
+  document.getElementById("pipe-kpis").innerHTML =
+    kpiCard("Open Pipeline", fmtM(pipeVal), open.length + " deals", "", true, "var(--blue)") +
+    kpiCard("Won", fmtM(wonVal), won.length + " deals", "", true, "var(--green)") +
+    kpiCard("Win Rate", wr + "%", won.length + "/" + deals.length, "", true, "var(--amber)") +
+    kpiCard("Avg Deal", open.length ? fmtM(pipeVal / open.length) : "—", "Open deals avg", "", true, "var(--purple,#8B5CF6)");
+
+  renderDeals();
+  renderFunnelFull();
+
+  killChart("pch");
+  var byT = {};
+  deals.forEach(function(d) { byT[d.tier] = (byT[d.tier] || 0) + d.val; });
+  charts["pch"] = new Chart(document.getElementById("ch-pch"), {
+    type: "bar",
+    data: { labels: Object.keys(byT), datasets: [{ label: "Pipeline", data: Object.values(byT), backgroundColor: ["#3B82F6","#10B981","#F59E0B","#8B5CF6","#EF4444"], borderRadius: 4 }] },
+    options: Object.assign({}, CHART_OPTS, { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73", callback: function(v) { return fmtM(v); } }, grid: { color: "#243352" } } } })
+  });
+}
+
+function renderDeals() {
+  var stageFilter = document.getElementById("filter-stage").value;
+  var deals = DB.deals().filter(function(d) { return !stageFilter || d.stage === stageFilter; })
+    .sort(function(a,b) { return b.val - a.val; });
+  var el = document.getElementById("deal-list");
+  if (!deals.length) { el.innerHTML = "<div class=\"t-mu\" style=\"padding:20px;text-align:center\">No deals. Add your first!</div>"; return; }
+  el.innerHTML = deals.map(function(d) {
+    var advBtn = ["Prospect","Qualified","Proposal Sent","Negotiation"].indexOf(d.stage) !== -1
+      ? "<button class=\"btn btn-g btn-s\" onclick=\"advanceDeal(" + d.id + ")\">\u2192 Advance</button>" : "";
+    return "<div class=\"dcard\">" +
+      "<div style=\"display:flex;justify-content:space-between;align-items:flex-start\">" +
+      "<div><div class=\"dname\">" + d.acc + "</div>" +
+      "<div class=\"dmeta\"><span>\ud83d\udce6 " + d.mod + " \xd7" + d.qty + "</span><span>\ud83c\udff7 " + d.tier + "</span><span>\ud83d\udcc5 " + d.close + "</span></div></div>" +
+      "<div style=\"text-align:right\">" + stageBadge(d.stage) + "<div style=\"font-size:16px;font-weight:700;font-family:var(--m);margin-top:4px\">" + fmtM(d.val) + "</div></div></div>" +
+      (d.notes ? "<div class=\"t-sm t-mu\" style=\"margin-top:4px\">\ud83d\udcac " + d.notes + "</div>" : "") +
+      "<div class=\"dacts\">" + advBtn +
+      "<button class=\"btn btn-o btn-s\" onclick=\"editDeal(" + d.id + ")\">Edit</button>" +
+      "<button class=\"btn btn-o btn-s\" style=\"color:var(--red);border-color:var(--dred)\" onclick=\"deleteDeal(" + d.id + ")\">Remove</button>" +
+      "</div></div>";
+  }).join("");
+}
+
+function renderFunnelFull() {
+  var stages = ["Prospect","Qualified","Proposal Sent","Negotiation","Won","Lost"];
+  var cols = ["#4A5C73","#3B82F6","#F59E0B","#F97316","#10B981","#EF4444"];
+  var deals = DB.deals();
+  document.getElementById("funnel-full").innerHTML = stages.map(function(st, i) {
+    var cnt = deals.filter(function(d) { return d.stage === st; }).length;
+    var val = deals.filter(function(d) { return d.stage === st; }).reduce(function(a,d) { return a + d.val; }, 0);
+    var pct = deals.length ? cnt / deals.length * 100 : 0;
+    return "<div class=\"fi\" style=\"--lc:" + cols[i] + "\">" +
+      "<div style=\"min-width:28px;text-align:center;font-size:18px;font-weight:700;font-family:var(--m);color:" + cols[i] + "\">" + cnt + "</div>" +
+      "<div style=\"flex:1\"><div class=\"fn\">" + st + "<span class=\"fv\">" + fmtM(val) + "</span></div>" +
+      "<div class=\"pbg\"><div class=\"pfill\" style=\"width:" + pct + "%;background:" + cols[i] + "\"></div></div></div></div>";
+  }).join("");
+}
+
+function advanceDeal(id) {
+  var order = ["Prospect","Qualified","Proposal Sent","Negotiation","Won"];
+  var deals = DB.deals();
+  var d = deals.filter(function(x) { return x.id === id; })[0];
+  if (!d) return;
+  var idx = order.indexOf(d.stage);
+  if (idx < order.length - 1) { d.stage = order[idx+1]; }
+  DB.set("deals", deals);
+  toast(d.acc + " \u2192 " + d.stage, "success");
+  renderDeals(); renderFunnelFull();
+}
+function deleteDeal(id) {
+  if (!confirm("Remove this deal?")) return;
+  DB.set("deals", DB.deals().filter(function(d) { return d.id !== id; }));
+  renderDeals(); renderFunnelFull();
+}
+
+// =====================================================
+// ACCOUNTS
+// =====================================================
+function renderAccounts() {
+  var acts = DB.acts();
+  var accs = [];
+  acts.forEach(function(a) { if (accs.indexOf(a.acc) === -1) accs.push(a.acc); });
+
+  var sel = document.getElementById("filter-acc");
+  sel.innerHTML = "<option value=\"\">All Accounts</option>" + accs.map(function(a) { return "<option>" + a + "</option>"; }).join("");
+
+  if (!accs.length) {
+    document.getElementById("acc-health").innerHTML = "<div class=\"t-mu\" style=\"padding:20px;text-align:center\">No activity yet</div>";
+  } else {
+    var rows = accs.map(function(acc) {
+      var aa = acts.filter(function(a) { return a.acc === acc; }).sort(function(x,y) { return y.date.localeCompare(x.date); });
+      var last = aa[0];
+      var days = last ? Math.floor((new Date() - new Date(last.date)) / 86400000) : 999;
+      var st = days <= 7 ? "Active" : days <= 21 ? "Warm" : "Cold";
+      var bc = st === "Active" ? "b-gr" : st === "Warm" ? "b-am" : "b-rd";
+      return "<tr><td style=\"font-weight:600;color:var(--t1)\">" + acc + "</td>" +
+        "<td class=\"mono\">" + (last ? last.date : "—") + "</td><td>" + aa.length + "</td>" +
+        "<td><span class=\"badge " + bc + "\">" + st + "</span></td>" +
+        "<td class=\"t-sm t-mu\">" + (last && last.fu ? last.fu : "—") + "</td></tr>";
+    }).join("");
+    document.getElementById("acc-health").innerHTML = "<div class=\"twrap\"><table><thead><tr><th>Account</th><th>Last Contact</th><th>Activities</th><th>Status</th><th>Next Action</th></tr></thead><tbody>" + rows + "</tbody></table></div>";
+  }
+  renderActs();
+}
+
+function renderActs() {
+  var accF = document.getElementById("filter-acc").value;
+  var acts = DB.acts().filter(function(a) { return !accF || a.acc === accF; })
+    .sort(function(a,b) { return b.date.localeCompare(a.date); });
+  var el = document.getElementById("act-list");
+  if (!acts.length) { el.innerHTML = "<div class=\"t-mu\" style=\"padding:20px;text-align:center\">No activities</div>"; return; }
+  el.innerHTML = acts.map(function(a) {
+    return "<div class=\"aitem\"><div class=\"adot\"></div><div style=\"flex:1\">" +
+      "<div style=\"display:flex;justify-content:space-between\">" +
+      "<div><span style=\"font-size:10px;color:var(--t3)\">" + a.date + "</span> <span class=\"badge b-bl\" style=\"font-size:9px\">" + a.type + "</span></div>" +
+      "<button class=\"btn btn-o btn-s\" style=\"font-size:10px;padding:2px 8px\" onclick=\"deleteAct(" + a.id + ")\">\u2715</button>" +
+      "</div><div style=\"font-size:12px;font-weight:600\">" + a.acc + " \u00b7 <span style=\"font-weight:400;color:var(--t3)\">" + a.con + "</span></div>" +
+      "<div class=\"t-sm t-mu\">" + a.det + "</div>" +
+      (a.out ? "<div style=\"font-size:11px;color:var(--green)\">\u2192 " + a.out + "</div>" : "") +
+      (a.fu ? "<div class=\"t-sm\" style=\"color:var(--amber);margin-top:2px\">\u2691 " + a.fu + "</div>" : "") +
+      "</div></div>";
+  }).join("");
+}
+function deleteAct(id) {
+  DB.set("acts", DB.acts().filter(function(a) { return a.id !== id; }));
+  renderActs();
+}
+
+// =====================================================
+// PRODUCTS
+// =====================================================
+function renderProducts() {
+  var sales = DB.sales();
+  var totU = sales.reduce(function(a,s) { return a + s.qty; }, 0);
+  var totR = sales.reduce(function(a,s) { return a + s.price * s.qty; }, 0);
+  var avgM = sales.length ? sales.reduce(function(a,s) { return a + s.margin; }, 0) / sales.length : 0;
+
+  document.getElementById("prod-kpis").innerHTML =
+    kpiCard("Total Units", totU, "All time", "", true, "var(--blue)") +
+    kpiCard("Total Revenue", fmtM(totR), "All time", "", true, "var(--green)") +
+    kpiCard("Avg Margin", (avgM*100).toFixed(1)+"%", "Across channels", "", true, "var(--amber)") +
+    kpiCard("SKUs Active", [].concat.apply([], [sales.map(function(s){return s.mod;})]).filter(function(v,i,a){return a.indexOf(v)===i;}).length, "Distinct models", "", true, "var(--blue)");
+
+  var byMod = {};
+  sales.forEach(function(s) {
+    if (!byMod[s.mod]) byMod[s.mod] = {u:0, r:0};
+    byMod[s.mod].u += s.qty;
+    byMod[s.mod].r += s.price * s.qty;
+  });
+  var mods = Object.keys(byMod);
+  var COLORS = ["#3B82F6","#10B981","#F59E0B","#8B5CF6","#EF4444","#06B6D4"];
+
+  killChart("units");
+  charts["units"] = new Chart(document.getElementById("ch-units"), {
+    type: "bar",
+    data: { labels: mods, datasets: [{ label: "Units", data: mods.map(function(m){return byMod[m].u;}), backgroundColor: COLORS, borderRadius: 4 }] },
+    options: Object.assign({}, CHART_OPTS, { plugins: { legend: { display: false } } })
+  });
+  killChart("rmod");
+  charts["rmod"] = new Chart(document.getElementById("ch-rmod"), {
+    type: "bar",
+    data: { labels: mods, datasets: [{ label: "Revenue", data: mods.map(function(m){return byMod[m].r;}), backgroundColor: COLORS, borderRadius: 4 }] },
+    options: Object.assign({}, CHART_OPTS, { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73", callback: function(v){return fmtM(v);} }, grid: { color: "#243352" } } } })
+  });
+
+  document.getElementById("sales-log").innerHTML = sales.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).map(function(s) {
+    return "<tr><td class=\"mono\">" + s.date + "</td><td><span class=\"sku\">" + s.mod + "</span></td>" +
+      "<td>" + s.qty + "</td><td>" + s.tier + "</td>" +
+      "<td class=\"mono\">" + fmt(s.price) + "</td>" +
+      "<td class=\"mono t-gr\">" + fmt(s.price * s.qty) + "</td>" +
+      "<td><span class=\"badge b-gr\">" + (s.margin*100).toFixed(1) + "%</span></td>" +
+      "<td>" + s.acc + "</td></tr>";
+  }).join("");
+}
+
+// =====================================================
+// MARGIN
+// =====================================================
+function renderMargin() {
+  var sales = DB.sales();
+  var tgt = DB.targets();
+  var totR = sales.reduce(function(a,s){return a+s.price*s.qty;},0);
+  var totGP = sales.reduce(function(a,s){return a+s.price*s.qty*s.margin;},0);
+  var avgM = sales.length ? sales.reduce(function(a,s){return a+s.margin;},0)/sales.length : 0;
+
+  document.getElementById("margin-kpis").innerHTML =
+    kpiCard("Total Revenue", fmtM(totR), "All records", "", true, "var(--blue)") +
+    kpiCard("Gross Profit", fmtM(totGP), "Est. excl. overhead", "", true, "var(--green)") +
+    kpiCard("Avg Margin", (avgM*100).toFixed(1)+"%", "All channels", "", true, "var(--green)") +
+    kpiCard("Floor Check", avgM >= 0.05 ? "\u2713 Safe" : "\u26a0 Risk", "Min 5%", "", avgM >= 0.05, "var(--amber)");
+
+  killChart("mrev");
+  var months = [], now = new Date();
+  for (var i = 5; i >= 0; i--) {
+    var dd = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var m0 = dd.toISOString().split("T")[0];
+    var m1 = new Date(dd.getFullYear(), dd.getMonth()+1, 0).toISOString().split("T")[0];
+    var r = sales.filter(function(s){return s.date>=m0&&s.date<=m1;}).reduce(function(a,s){return a+s.price*s.qty;},0);
+    months.push({l: dd.toLocaleString("en",{month:"short"}), r: r});
+  }
+  charts["mrev"] = new Chart(document.getElementById("ch-mrev"), {
+    type: "bar",
+    data: { labels: months.map(function(m){return m.l;}), datasets: [
+      { label: "Revenue", data: months.map(function(m){return m.r;}), backgroundColor: "#3B82F6", borderRadius: 4 },
+      { label: "Target", data: months.map(function(){return tgt.mr;}), type: "line", borderColor: "rgba(245,158,11,.7)", borderDash: [5,5], pointRadius: 0, fill: false }
+    ]},
+    options: Object.assign({}, CHART_OPTS, { scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73", callback: function(v){return fmtM(v);} }, grid: { color: "#243352" } } } })
+  });
+
+  killChart("mch");
+  var byT = {};
+  sales.forEach(function(s) { if (!byT[s.tier]) byT[s.tier] = {m:0,c:0}; byT[s.tier].m += s.margin; byT[s.tier].c++; });
+  var tiers = Object.keys(byT);
+  var mgs = tiers.map(function(t){return (byT[t].m/byT[t].c*100).toFixed(1);});
+  charts["mch"] = new Chart(document.getElementById("ch-mch"), {
+    type: "bar",
+    data: { labels: tiers, datasets: [{ label: "Margin %", data: mgs, backgroundColor: mgs.map(function(m){return m>=15?"#10B981":m>=10?"#F59E0B":"#EF4444";}), borderRadius: 4 }] },
+    options: Object.assign({}, CHART_OPTS, { plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73", callback: function(v){return v+"%";} }, grid: { color: "#243352" } } } })
+  });
+}
+
+// =====================================================
+// TARGETS
+// =====================================================
+function renderTargets() {
+  var sales = DB.sales();
+  var tgt = DB.targets();
+  var ms = monthStart(), ws = weekStart();
+  var mS = sales.filter(function(s){return s.date>=ms;});
+  var wS = sales.filter(function(s){return s.date>=ws;});
+  var mR = mS.reduce(function(a,s){return a+s.price*s.qty;},0);
+  var mU = mS.reduce(function(a,s){return a+s.qty;},0);
+  var wR = wS.reduce(function(a,s){return a+s.price*s.qty;},0);
+  var wU = wS.reduce(function(a,s){return a+s.qty;},0);
+
+  document.getElementById("tgt-kpis").innerHTML =
+    kpiCard("Week Revenue", fmtM(wR), fmtM(tgt.wr), Math.round(wR/(tgt.wr||1)*100)+"%", wR>=tgt.wr, wR>=tgt.wr?"var(--green)":"var(--blue)") +
+    kpiCard("Month Revenue", fmtM(mR), fmtM(tgt.mr), Math.round(mR/(tgt.mr||1)*100)+"%", mR>=tgt.mr, mR>=tgt.mr?"var(--green)":"var(--blue)") +
+    kpiCard("Month Units", mU+"/"+tgt.mu, "Units sold", "", mU>=tgt.mu, "var(--amber)") +
+    kpiCard("Q3 Target", fmtM(tgt.q3), "Quarterly goal", "", true, "var(--purple,#8B5CF6)");
+
+  function mp(label, actual, target, color) {
+    var p = Math.min(actual / (target||1) * 100, 100);
+    var aFmt = actual > 1000 ? fmtM(actual) : actual;
+    var tFmt = target > 1000 ? fmtM(target) : target;
+    return progBar(label, aFmt + " / " + tFmt, p, color);
+  }
+  document.getElementById("weekly-prog").innerHTML =
+    mp("Revenue", wR, tgt.wr, wR>=tgt.wr?"var(--green)":"var(--blue)") +
+    mp("Units", wU, tgt.wu, wU>=tgt.wu?"var(--green)":"var(--amber)");
+  document.getElementById("monthly-prog").innerHTML =
+    mp("Revenue", mR, tgt.mr, mR>=tgt.mr?"var(--green)":"var(--blue)") +
+    mp("Units", mU, tgt.mu, mU>=tgt.mu?"var(--green)":"var(--amber)") +
+    mp("Account Activities", DB.acts().filter(function(a){return a.date>=ms;}).length, tgt.ac, "var(--blue)");
+
+  killChart("q3");
+  var q3m = [], qS = new Date(); qS.setMonth(6, 1);
+  for (var i = 0; i < 3; i++) {
+    var dd = new Date(qS.getFullYear(), qS.getMonth()+i, 1);
+    var m0 = dd.toISOString().split("T")[0];
+    var m1 = new Date(dd.getFullYear(), dd.getMonth()+1, 0).toISOString().split("T")[0];
+    var r = sales.filter(function(s){return s.date>=m0&&s.date<=m1;}).reduce(function(a,s){return a+s.price*s.qty;},0);
+    q3m.push({l: dd.toLocaleString("en",{month:"long"}), r: r});
+  }
+  charts["q3"] = new Chart(document.getElementById("ch-q3"), {
+    type: "bar",
+    data: { labels: q3m.map(function(m){return m.l;}), datasets: [
+      { label: "Actual", data: q3m.map(function(m){return m.r;}), backgroundColor: "#3B82F6", borderRadius: 6 },
+      { label: "Target", data: q3m.map(function(){return tgt.mr;}), backgroundColor: "rgba(245,158,11,.15)", borderColor: "rgba(245,158,11,.7)", borderWidth: 2, type: "bar", borderRadius: 6 }
+    ]},
+    options: Object.assign({}, CHART_OPTS, { scales: { x: { ticks: { color: "#4A5C73" } }, y: { ticks: { color: "#4A5C73", callback: function(v){return fmtM(v);} }, grid: { color: "#243352" } } } })
+  });
+}
+
+// =====================================================
+// HISTORY
+// =====================================================
+function renderHistory() {
+  var rpts = DB.reports().slice().sort(function(a,b){return b.saved.localeCompare(a.saved);});
+  var el = document.getElementById("hist-body");
+  var em = document.getElementById("hist-empty");
+  if (!rpts.length) { el.innerHTML = ""; em.style.display = "block"; return; }
+  em.style.display = "none";
+  el.innerHTML = rpts.map(function(r, i) {
+    return "<tr><td class=\"mono\">W" + r.week + "</td><td>" + r.period + "</td>" +
+      "<td class=\"mono t-gr\">" + (r.rev ? fmtM(Number(r.rev)) : "—") + "</td>" +
+      "<td>" + (r.units || "—") + "</td>" +
+      "<td class=\"t-mu\">" + (r.issues || "").substring(0,50) + "</td>" +
+      "<td class=\"mono t-mu\">" + r.saved.split("T")[0] + "</td>" +
+      "<td><button class=\"btn btn-o btn-s\" onclick=\"loadHistReport(" + i + ")\">View</button></td></tr>";
+  }).join("");
+}
+function loadHistReport(idx) {
+  var r = DB.reports().slice().sort(function(a,b){return b.saved.localeCompare(a.saved);})[idx];
+  if (!r) return;
+  document.getElementById("r-period").value = r.period || "";
+  document.getElementById("r-date").value = r.date || "";
+  document.getElementById("r-rev").value = r.rev || "";
+  document.getElementById("r-units").value = r.units || "";
+  document.getElementById("r-issues").value = r.issues || "";
+  document.getElementById("r-plan").value = r.plan || "";
+  document.getElementById("r-support").value = r.support || "";
+  goPanel("weekly");
+}
+
+// =====================================================
+// WEEKLY REPORT
+// =====================================================
+function generateReport() {
+  var sales = DB.sales();
+  var deals = DB.deals();
+  var tgt = DB.targets();
+  var cfg = loadEmailConfig();
+
+  var ms = monthStart();
+  var mR = sales.filter(function(s){return s.date>=ms;}).reduce(function(a,s){return a+s.price*s.qty;},0);
+  var mU = sales.filter(function(s){return s.date>=ms;}).reduce(function(a,s){return a+s.qty;},0);
+  var open = deals.filter(function(d){return d.stage!=="Won"&&d.stage!=="Lost";});
+  var pipeVal = open.reduce(function(a,d){return a+d.val;},0);
+
+  var period = document.getElementById("r-period").value || "[period]";
+  var rev = Number(document.getElementById("r-rev").value) || 0;
+  var units = Number(document.getElementById("r-units").value) || 0;
+  var issues = document.getElementById("r-issues").value || "None.";
+  var plan = document.getElementById("r-plan").value || "See pipeline.";
+  var support = document.getElementById("r-support").value || "None.";
+
+  var accRows = [].slice.call(document.querySelectorAll("#r-acc-rows tr")).map(function(tr) {
+    return [].slice.call(tr.querySelectorAll("input,select")).map(function(el){return el.value;});
+  }).filter(function(r){return r[0]||r[1];});
+  var pipeRows = [].slice.call(document.querySelectorAll("#r-pipe-rows tr")).map(function(tr) {
+    return [].slice.call(tr.querySelectorAll("input,select")).map(function(el){return el.value;});
+  }).filter(function(r){return r[0];});
+
+  var accT = accRows.length ? accRows.map(function(r){return "  | " + r.join(" | ") + " |";}).join("\n") : "  (No meetings this week)";
+  var pipeT = pipeRows.length ? pipeRows.map(function(r){return "  | " + r.join(" | ") + " |";}).join("\n") : "  (See pipeline dashboard)";
+
+  var subj = (document.getElementById("e-subj").value || cfg.subj || "[Weekly Sales Report] ViewLife AIO").trim();
+  var mRPct = tgt.mr > 0 ? Math.round(mR / tgt.mr * 100) : 0;
+
+  var body = "Subject: " + subj + " \u00b7 " + period + "\n\n" +
+"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n" +
+"  REMANN CO., LTD. \u2014 VIEWLIFE SALES DIVISION\n" +
+"  Weekly Report \u00b7 " + (cfg.name || "Sales Team") + "\n" +
+"  Period: " + period + "  |  Date: " + (document.getElementById("r-date").value || today()) + "\n" +
+"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n" +
+"\ud83d\udcca WEEK AT A GLANCE\n" +
+"  Revenue This Week   : " + (rev > 0 ? fmtM(rev) : "[update]") + "\n" +
+"  Units Sold          : " + (units > 0 ? units + "u" : "[update]") + "\n" +
+"  Weekly Target       : " + fmtM(tgt.wr) + " / " + tgt.wu + "u\n" +
+"  Month-to-Date Rev   : " + fmtM(mR) + " (" + mRPct + "% of " + fmtM(tgt.mr) + ")\n" +
+"  Month-to-Date Units : " + mU + "u / " + tgt.mu + "u\n" +
+"  Open Pipeline       : " + fmtM(pipeVal) + " (" + open.length + " deals)\n\n" +
+"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n1. KEY ACCOUNT ACTIVITY\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n" + accT + "\n\n" +
+"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n2. PIPELINE\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n" + pipeT + "\n  Total Open: " + fmtM(pipeVal) + " across " + open.length + " deals\n\n" +
+"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n3. ISSUES & CHALLENGES\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n" + issues + "\n\n" +
+"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n4. PLAN FOR NEXT WEEK\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n" + plan + "\n\n" +
+"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n5. SUPPORT REQUESTED\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n" + support + "\n\n" +
+"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n" +
+(cfg.name || "Sales Manager") + " \u00b7 REMANn Co., Ltd. \u2014 ViewLife\n" +
+"\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501";
+
+  document.getElementById("email-preview").textContent = body;
+  return body;
+}
+
+// =====================================================
+// EMAIL CONFIG — Bitrix24
+// =====================================================
+function loadEmailConfig() {
+  try {
+    var cfg = JSON.parse(localStorage.getItem("vl_emailcfg") || "{}");
+    var el;
+    el = document.getElementById("e-domain"); if (el && cfg.domain) el.value = cfg.domain;
+    el = document.getElementById("e-from");   if (el && cfg.from)   el.value = cfg.from;
+    el = document.getElementById("e-name");   if (el && cfg.name)   el.value = cfg.name;
+    el = document.getElementById("e-to");     if (el && cfg.to)     el.value = cfg.to;
+    el = document.getElementById("e-cc");     if (el && cfg.cc)     el.value = cfg.cc;
+    el = document.getElementById("e-subj");   if (el && cfg.subj)   el.value = cfg.subj;
+    updateEmailStatus();
+    return cfg;
+  } catch(e) { return {}; }
+}
+function saveEmailConfig() {
+  try {
+    var cfg = {
+      domain: (document.getElementById("e-domain").value || "").trim().replace(/^https?:\/\//,"").replace(/\/$/,""),
+      from:   (document.getElementById("e-from").value   || "").trim(),
+      name:   (document.getElementById("e-name").value   || "").trim(),
+      to:     (document.getElementById("e-to").value     || "").trim(),
+      cc:     (document.getElementById("e-cc").value     || "").trim(),
+      subj:   (document.getElementById("e-subj").value   || "").trim()
+    };
+    localStorage.setItem("vl_emailcfg", JSON.stringify(cfg));
+    updateEmailStatus();
+  } catch(e) {}
+}
+function updateEmailStatus() {
+  var el = document.getElementById("email-status");
+  if (!el) return;
+  try {
+    var cfg = JSON.parse(localStorage.getItem("vl_emailcfg") || "{}");
+    if (cfg.domain && cfg.to) {
+      el.style.background = "#064E3B"; el.style.color = "#10B981";
+      el.textContent = "\u2713 Bitrix24 s\u1eb5n s\xe0ng";
+    } else if (cfg.to) {
+      el.style.background = "#451A03"; el.style.color = "#F59E0B";
+      el.textContent = "Ch\u01b0a c\xf3 domain";
+    } else {
+      el.style.background = "#1F2937"; el.style.color = "#9CA3AF";
+      el.textContent = "Ch\u01b0a c\u1ea5u h\xecnh";
+    }
+  } catch(e) {}
+}
+function sendEmail(method) {
+  var body = generateReport();
+  var cfg = {};
+  try { cfg = JSON.parse(localStorage.getItem("vl_emailcfg") || "{}"); } catch(e) {}
+  var to = (document.getElementById("e-to").value || cfg.to || "").trim();
+  var cc = (document.getElementById("e-cc").value || cfg.cc || "").trim();
+  var period = document.getElementById("r-period").value || "";
+  var pfx = (document.getElementById("e-subj").value || cfg.subj || "[Weekly Sales Report] ViewLife AIO").trim();
+  var subject = pfx + " \u00b7 " + period;
+  var domain = (document.getElementById("e-domain").value || cfg.domain || "").trim().replace(/^https?:\/\//,"").replace(/\/$/,"");
+  if (!to) { alert("\u26a0 Vui l\xf2ng nh\u1eadp email ng\u01b0\u1eddi nh\u1eadn."); return; }
+  if (method === "bitrix") {
+    if (!domain) { alert("\u26a0 Vui l\xf2ng nh\u1eadp Bitrix24 domain.\nV\xed d\u1ee5: remann.bitrix24.vn"); return; }
+    var url = "https://" + domain + "/mail/compose/" +
+      "?to=" + encodeURIComponent(to) +
+      "&subject=" + encodeURIComponent(subject) +
+      "&body=" + encodeURIComponent(body) +
+      (cc ? "&cc=" + encodeURIComponent(cc) : "");
+    window.open(url, "_blank");
+    try { navigator.clipboard.writeText(body); } catch(e) {}
+    document.getElementById("bh-to").textContent = to;
+    document.getElementById("bh-subj").textContent = subject;
+    document.getElementById("bh-dom").textContent = domain;
+    document.getElementById("bx-helper").style.display = "block";
+  } else {
+    var mailUrl = "mailto:" + encodeURIComponent(to) +
+      "?subject=" + encodeURIComponent(subject) +
+      (cc ? "&cc=" + encodeURIComponent(cc) : "") +
+      "&body=" + encodeURIComponent(body);
+    window.open(mailUrl, "_blank");
+  }
+}
+function copyReport() {
+  var txt = generateReport();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(function() { alert("\u2705 \u0110\xe3 copy!\nV\xe0o Bitrix24 \u2192 Compose \u2192 Ctrl+V."); });
+  } else {
+    var ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand("copy"); document.body.removeChild(ta);
+    alert("\u2705 \u0110\xe3 copy!");
+  }
+}
+function saveReport() {
+  var rpts = DB.reports();
+  rpts.push({
+    week: weekNum(),
+    period: document.getElementById("r-period").value,
+    date: document.getElementById("r-date").value,
+    rev: document.getElementById("r-rev").value,
+    units: document.getElementById("r-units").value,
+    issues: document.getElementById("r-issues").value,
+    plan: document.getElementById("r-plan").value,
+    support: document.getElementById("r-support").value,
+    saved: new Date().toISOString()
+  });
+  DB.set("reports", rpts);
+  toast("B\xe1o c\xe1o \u0111\xe3 l\u01b0u!", "success");
+}
+function loadLastReport() {
+  var rpts = DB.reports().slice().sort(function(a,b){return b.saved.localeCompare(a.saved);});
+  if (!rpts.length) { toast("No saved reports", "info"); return; }
+  var r = rpts[0];
+  document.getElementById("r-period").value = r.period || "";
+  document.getElementById("r-date").value = r.date || "";
+  document.getElementById("r-rev").value = r.rev || "";
+  document.getElementById("r-units").value = r.units || "";
+  document.getElementById("r-issues").value = r.issues || "";
+  document.getElementById("r-plan").value = r.plan || "";
+  document.getElementById("r-support").value = r.support || "";
+  toast("Loaded last report", "info");
+}
+function printReport() {
+  var txt = generateReport();
+  var w = window.open("", "_blank");
+  w.document.write("<html><head><title>Weekly Report</title><style>body{font-family:monospace;white-space:pre-wrap;padding:30px;font-size:13px}</style></head><body>" + txt.replace(/&/g,"&amp;").replace(/</g,"&lt;") + "</body></html>");
+  w.print();
+}
+function addAccRow() {
+  var tr = document.createElement("tr");
+  tr.innerHTML = "<td><input placeholder=\"Date\" style=\"width:70px;padding:4px;font-size:11px\"></td>" +
+    "<td><input placeholder=\"Account\" style=\"width:90px;padding:4px;font-size:11px\"></td>" +
+    "<td><input placeholder=\"Detail\" style=\"width:120px;padding:4px;font-size:11px\"></td>" +
+    "<td><input placeholder=\"Outcome\" style=\"width:110px;padding:4px;font-size:11px\"></td>" +
+    "<td><input placeholder=\"Next step\" style=\"width:100px;padding:4px;font-size:11px\"></td>" +
+    "<td><button class=\"btn btn-o btn-s\" onclick=\"this.closest('tr').remove()\">\u2715</button></td>";
+  document.getElementById("r-acc-rows").appendChild(tr);
+}
+function addPipeRow() {
+  var tr = document.createElement("tr");
+  tr.innerHTML = "<td><input placeholder=\"Account\" style=\"width:90px;padding:4px;font-size:11px\"></td>" +
+    "<td><input placeholder=\"1315U x20\" style=\"width:90px;padding:4px;font-size:11px\"></td>" +
+    "<td><input placeholder=\"270M\" style=\"width:80px;padding:4px;font-size:11px\"></td>" +
+    "<td><select style=\"width:100px;padding:4px;font-size:11px\"><option>Prospect</option><option>Qualified</option><option>Proposal Sent</option><option>Negotiation</option></select></td>" +
+    "<td><input placeholder=\"Sep 26\" style=\"width:70px;padding:4px;font-size:11px\"></td>" +
+    "<td><button class=\"btn btn-o btn-s\" onclick=\"this.closest('tr').remove()\">\u2715</button></td>";
+  document.getElementById("r-pipe-rows").appendChild(tr);
+}
+
+// Presets
+function applyPreset(name) {
+  var p = {};
+  try { p = JSON.parse(localStorage.getItem("vl_presets") || "{}"); } catch(e) {}
+  var map = { ceo:{to:p.ceoTo,cc:p.ceoCc}, team:{to:p.teamTo,cc:p.teamCc}, mgmt:{to:p.mgmtTo,cc:p.mgmtCc} };
+  var sel = map[name];
+  if (!sel || !sel.to) { openModal("modal-presets"); return; }
+  document.getElementById("e-to").value = sel.to;
+  document.getElementById("e-cc").value = sel.cc || "";
+  saveEmailConfig();
+}
+function savePresets() {
+  var p = {
+    ceoTo:  document.getElementById("p-ceo-to").value.trim(),
+    ceoCc:  document.getElementById("p-ceo-cc").value.trim(),
+    teamTo: document.getElementById("p-team-to").value.trim(),
+    teamCc: document.getElementById("p-team-cc").value.trim(),
+    mgmtTo: document.getElementById("p-mgmt-to").value.trim(),
+    mgmtCc: document.getElementById("p-mgmt-cc").value.trim()
+  };
+  localStorage.setItem("vl_presets", JSON.stringify(p));
+  closeModal("modal-presets");
+  toast("\u0110\xe3 l\u01b0u danh s\xe1ch g\u1eedi!", "success");
+}
+
+// =====================================================
+// MODALS
+// =====================================================
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".mo").forEach(function(m) {
+  m.addEventListener("click", function(e) { if (e.target === m) m.classList.remove("open"); });
+});
+
+// Deal Modal
+var editDealId = null;
+function openDealModal(deal) {
+  editDealId = deal ? deal.id : null;
+  if (deal) {
+    document.getElementById("d-acc").value = deal.acc || "";
+    document.getElementById("d-con").value = deal.con || "";
+    document.getElementById("d-mod").value = deal.mod || "1315U";
+    document.getElementById("d-qty").value = deal.qty || "";
+    document.getElementById("d-tier").value = deal.tier || "Authorized";
+    document.getElementById("d-stage").value = deal.stage || "Prospect";
+    document.getElementById("d-val").value = deal.val || "";
+    document.getElementById("d-close").value = deal.close || "";
+    document.getElementById("d-notes").value = deal.notes || "";
+  } else {
+    ["d-acc","d-con","d-qty","d-val","d-notes"].forEach(function(id){document.getElementById(id).value="";});
+    document.getElementById("d-close").value = today();
+  }
+  openModal("modal-deal");
+}
+function editDeal(id) {
+  var d = DB.deals().filter(function(x){return x.id===id;})[0];
+  if (d) openDealModal(d);
+}
+function saveDeal() {
+  var acc = document.getElementById("d-acc").value;
+  if (!acc) { toast("Account name is required", "error"); return; }
+  var deals = DB.deals();
+  var deal = {
+    id: editDealId || Date.now(),
+    acc: acc,
+    con: document.getElementById("d-con").value,
+    mod: document.getElementById("d-mod").value,
+    qty: Number(document.getElementById("d-qty").value),
+    tier: document.getElementById("d-tier").value,
+    stage: document.getElementById("d-stage").value,
+    val: Number(document.getElementById("d-val").value),
+    close: document.getElementById("d-close").value,
+    notes: document.getElementById("d-notes").value
+  };
+  if (editDealId) {
+    var idx = -1;
+    deals.forEach(function(d,i){if(d.id===editDealId)idx=i;});
+    if (idx !== -1) deals[idx] = deal;
+  } else {
+    deals.push(deal);
+  }
+  DB.set("deals", deals);
+  closeModal("modal-deal");
+  toast("Deal saved!", "success");
+  document.getElementById("pipe-badge").textContent = DB.deals().filter(function(d){return d.stage!=="Won"&&d.stage!=="Lost";}).length;
+  if (document.getElementById("panel-pipeline").classList.contains("active")) { renderDeals(); renderFunnelFull(); }
+}
+
+// Activity Modal
+function openActModal() {
+  ["a-acc","a-con","a-det","a-out","a-fu"].forEach(function(id){document.getElementById(id).value="";});
+  document.getElementById("a-date").value = today();
+  openModal("modal-act");
+}
+function saveActivity() {
+  var acc = document.getElementById("a-acc").value;
+  if (!acc) { toast("Account name required", "error"); return; }
+  var acts = DB.acts();
+  acts.push({
+    id: Date.now(),
+    date: document.getElementById("a-date").value,
+    acc: acc,
+    con: document.getElementById("a-con").value,
+    type: document.getElementById("a-type").value,
+    det: document.getElementById("a-det").value,
+    out: document.getElementById("a-out").value,
+    fu: document.getElementById("a-fu").value
+  });
+  DB.set("acts", acts);
+  closeModal("modal-act");
+  toast("Activity logged!", "success");
+  if (document.getElementById("panel-accounts").classList.contains("active")) renderAccounts();
+}
+
+// Sale Modal
+function openSaleModal() {
+  ["s-qty","s-price","s-acc"].forEach(function(id){document.getElementById(id).value="";});
+  document.getElementById("s-date").value = today();
+  openModal("modal-sale");
+}
+function saveSale() {
+  var margins = {"G5400":0.191,"N5095-TOUCH":0.17,"1315U":0.189,"1345U":0.191,"1345U-Black":0.191,"1345U-Black 512":0.19};
+  var mod = document.getElementById("s-mod").value;
+  var sales = DB.sales();
+  sales.push({
+    id: Date.now(),
+    date: document.getElementById("s-date").value,
+    mod: mod,
+    qty: Number(document.getElementById("s-qty").value),
+    price: Number(document.getElementById("s-price").value),
+    tier: document.getElementById("s-tier").value,
+    acc: document.getElementById("s-acc").value,
+    margin: margins[mod] || 0.15
+  });
+  DB.set("sales", sales);
+  closeModal("modal-sale");
+  toast("Sale recorded!", "success");
+  if (document.getElementById("panel-products").classList.contains("active")) renderProducts();
+}
+
+// Target Modal
+function openTargetModal() {
+  var t = DB.targets();
+  document.getElementById("t-wr").value = t.wr || "";
+  document.getElementById("t-wu").value = t.wu || "";
+  document.getElementById("t-mr").value = t.mr || "";
+  document.getElementById("t-mu").value = t.mu || "";
+  document.getElementById("t-q3").value = t.q3 || "";
+  document.getElementById("t-ac").value = t.ac || "";
+  openModal("modal-targets");
+}
+function saveTargets() {
+  DB.set("targets", {
+    wr: Number(document.getElementById("t-wr").value),
+    wu: Number(document.getElementById("t-wu").value),
+    mr: Number(document.getElementById("t-mr").value),
+    mu: Number(document.getElementById("t-mu").value),
+    q3: Number(document.getElementById("t-q3").value),
+    ac: Number(document.getElementById("t-ac").value)
+  });
+  closeModal("modal-targets");
+  toast("Targets saved!", "success");
+  if (document.getElementById("panel-targets").classList.contains("active")) renderTargets();
+}
+
+// =====================================================
+// INIT
+// =====================================================
+(function init() {
+  try {
+    // Week badge
+    var wkEl = document.getElementById("week-badge");
+    if (wkEl) wkEl.textContent = "W" + weekNum() + " \u00b7 " + new Date().toLocaleString("en",{month:"short",year:"numeric"});
+
+    // Date default
+    var rdEl = document.getElementById("r-date");
+    if (rdEl) rdEl.value = today();
+
+    // Load email config
+    loadEmailConfig();
+
+    // Render dashboard
+    renderDashboard();
+
+    // Pipeline badge
+    var pb = document.getElementById("pipe-badge");
+    if (pb) pb.textContent = DB.deals().filter(function(d){return d.stage!=="Won"&&d.stage!=="Lost";}).length;
+
+  } catch(e) {
+    console.error("Init error:", e);
+  }
+})();
+</script>
+</body>
+</html>
