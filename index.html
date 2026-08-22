@@ -696,27 +696,82 @@ select option { background: var(--navy-card); }
             <textarea id="rpt-support" rows="2" placeholder="e.g. Approval for Gold discount on Nguyen Dinh Chieu deal · Marketing budget for Shopee ads"></textarea>
           </div>
 
-          <!-- CEO email -->
-          <div class="card mb-16">
-            <div class="card-title">Send Report</div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>CEO / Manager Email</label>
-                <input type="email" id="ceo-email" placeholder="ceo@remann.vn" />
-              </div>
-              <div class="form-group">
-                <label>CC (optional)</label>
-                <input type="email" id="cc-email" placeholder="team@remann.vn" />
-              </div>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:10px;">
-            <button class="btn btn-green" style="flex:1" onclick="sendEmail()">📤 Send via Email Client</button>
-            <button class="btn btn-outline" onclick="saveReport()">💾 Save Report</button>
-            <button class="btn btn-outline" onclick="printReport()">🖨️ Print / PDF</button>
-          </div>
-        </div>
+          <!-- BITRIX24 EMAIL BLOCK -->
+<div class="card mb-16" style="border-left:3px solid #FF5752;">
+  <div class="card-header" style="margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:18px;">🟥</span>
+      <span style="font-size:13px;font-weight:700;color:#FF5752;">Bitrix24 Webmail</span>
+    </div>
+    <span id="email-cfg-status" style="background:#1F2937;color:#9CA3AF;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;">Chưa cấu hình</span>
+  </div>
+  <div style="margin-bottom:12px;">
+    <label style="font-size:11px;font-weight:600;color:#94A3B8;display:block;margin-bottom:5px;">Bitrix24 Domain của công ty</label>
+    <div style="display:flex;align-items:center;">
+      <span style="background:#162033;border:1px solid #243352;border-right:none;border-radius:7px 0 0 7px;padding:8px 10px;font-size:12px;color:#4A5C73;white-space:nowrap;">https://</span>
+      <input type="text" id="bitrix-domain" placeholder="remann.bitrix24.vn"
+        style="border-radius:0 7px 7px 0;border-left:none;flex:1;background:#162033;border:1px solid #243352;color:#F0F4FF;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;"
+        oninput="saveEmailCfg()" />
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    <div>
+      <label style="font-size:11px;font-weight:600;color:#94A3B8;display:block;margin-bottom:5px;">Email công ty của bạn</label>
+      <input type="email" id="from-email" placeholder="huyen@remann.vn"
+        style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;"
+        oninput="saveEmailCfg()" />
+    </div>
+    <div>
+      <label style="font-size:11px;font-weight:600;color:#94A3B8;display:block;margin-bottom:5px;">Tên hiển thị</label>
+      <input type="text" id="from-name" placeholder="Nguyen Ngoc Huyen – REMANn"
+        style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;"
+        oninput="saveEmailCfg()" />
+    </div>
+  </div>
+  <div style="margin-bottom:10px;">
+    <label style="font-size:11px;font-weight:600;color:#94A3B8;display:block;margin-bottom:5px;">To — Email sếp / người nhận</label>
+    <input type="email" id="ceo-email" placeholder="jang@remann.co.kr"
+      style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;"
+      oninput="saveEmailCfg()" />
+  </div>
+  <div style="margin-bottom:10px;">
+    <label style="font-size:11px;font-weight:600;color:#94A3B8;display:block;margin-bottom:5px;">CC <span style="color:#4A5C73;font-weight:400;">(nhiều email, cách nhau bằng dấu phẩy)</span></label>
+    <input type="text" id="cc-email" placeholder="sales.mgr@remann.com.vn, gabbie@remann.co.kr"
+      style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;"
+      oninput="saveEmailCfg()" />
+  </div>
+  <div style="margin-bottom:14px;">
+    <label style="font-size:11px;font-weight:600;color:#94A3B8;display:block;margin-bottom:5px;">Subject prefix</label>
+    <input type="text" id="email-subject-prefix" placeholder="[Weekly Sales Report] ViewLife AIO"
+      style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;"
+      oninput="saveEmailCfg()" />
+  </div>
+  <div style="padding:10px 12px;background:rgba(255,87,82,.07);border:1px solid rgba(255,87,82,.2);border-radius:7px;font-size:11px;color:#94A3B8;line-height:1.75;margin-bottom:14px;">
+    <strong style="color:#FF5752;">⚙ Cách dùng:</strong> Nhấn nút đỏ → Bitrix24 mở tab mới, tự điền To/Subject/nội dung.
+    Bạn chỉ cần nhấn <strong>Gửi</strong> trong Bitrix24.<br>
+    <span style="color:#4A5C73;">Nếu nội dung trống: dùng nút Copy rồi paste thủ công.</span>
+  </div>
+  <div style="margin-bottom:14px;">
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#4A5C73;margin-bottom:7px;">📋 Gửi nhanh</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="applyPreset('ceo')" style="background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;">🎯 CEO Only</button>
+      <button onclick="applyPreset('team')" style="background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;">👥 Full Team</button>
+      <button onclick="applyPreset('management')" style="background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;">🏢 Management</button>
+      <button onclick="openPresetModal()" style="background:#3B82F6;border:none;color:#fff;border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;">⚙ Chỉnh sửa</button>
+    </div>
+  </div>
+</div>
+<button onclick="sendEmail('bitrix')" style="width:100%;background:#FF5752;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;">
+  🟥 Mở Bitrix24 Mail &amp; Gửi
+</button>
+<div style="display:flex;gap:8px;margin-bottom:8px;">
+  <button onclick="copyReportToClipboard()" style="flex:1;background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;">📋 Copy → Paste vào Bitrix24</button>
+  <button onclick="sendEmail('mailto')" style="flex:1;background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;">📧 Mailto fallback</button>
+</div>
+<div style="display:flex;gap:8px;">
+  <button onclick="saveReport()" style="flex:1;background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;">💾 Lưu báo cáo</button>
+  <button onclick="printReport()" style="flex:1;background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;">🖨️ Print / PDF</button>
+</div>
 
         <!-- Preview -->
         <div>
@@ -1616,17 +1671,103 @@ REMANn Co., Ltd. — ViewLife
 
   document.getElementById('email-preview').textContent=email;
   return email;
+function loadEmailCfg() {
+  var cfg = JSON.parse(localStorage.getItem('vl_emailcfg') || '{}');
+  if (cfg.bitrixDomain) document.getElementById('bitrix-domain').value = cfg.bitrixDomain;
+  if (cfg.fromEmail)    document.getElementById('from-email').value    = cfg.fromEmail;
+  if (cfg.fromName)     document.getElementById('from-name').value     = cfg.fromName;
+  if (cfg.ceoEmail)     document.getElementById('ceo-email').value     = cfg.ceoEmail;
+  if (cfg.ccEmail)      document.getElementById('cc-email').value      = cfg.ccEmail;
+  if (cfg.subjectPfx)  document.getElementById('email-subject-prefix').value = cfg.subjectPfx;
+  updateEmailCfgStatus();
 }
-
-function sendEmail() {
-  const email=generateReport();
-  const to=document.getElementById('ceo-email').value||'';
-  const cc=document.getElementById('cc-email').value||'';
-  const period=document.getElementById('rpt-period').value||'';
-  const subject=encodeURIComponent(`[Weekly Sales Report] ViewLife AIO · ${period}`);
-  const body=encodeURIComponent(email);
-  const ccPart=cc?`&cc=${encodeURIComponent(cc)}`:'';
-  window.open(`mailto:${encodeURIComponent(to)}?subject=${subject}${ccPart}&body=${body}`,'_blank');
+function saveEmailCfg() {
+  var cfg = {
+    bitrixDomain: (document.getElementById('bitrix-domain').value||'').trim().replace(/^https?:\/\//,'').replace(/\/$/,''),
+    fromEmail:    (document.getElementById('from-email').value||'').trim(),
+    fromName:     (document.getElementById('from-name').value||'').trim(),
+    ceoEmail:     (document.getElementById('ceo-email').value||'').trim(),
+    ccEmail:      (document.getElementById('cc-email').value||'').trim(),
+    subjectPfx:   (document.getElementById('email-subject-prefix').value||'').trim(),
+  };
+  localStorage.setItem('vl_emailcfg', JSON.stringify(cfg));
+  updateEmailCfgStatus();
+}
+function updateEmailCfgStatus() {
+  var el = document.getElementById('email-cfg-status'); if (!el) return;
+  var cfg = JSON.parse(localStorage.getItem('vl_emailcfg') || '{}');
+  if (cfg.bitrixDomain && cfg.ceoEmail) { el.style.background='#064E3B'; el.style.color='#10B981'; el.textContent='✓ Bitrix24 đã cấu hình'; }
+  else if (cfg.ceoEmail)                { el.style.background='#451A03'; el.style.color='#F59E0B'; el.textContent='Chưa có domain'; }
+  else                                   { el.style.background='#1F2937'; el.style.color='#9CA3AF'; el.textContent='Chưa cấu hình'; }
+}
+function sendEmail(method) {
+  var body    = generateReport();
+  var cfg     = JSON.parse(localStorage.getItem('vl_emailcfg') || '{}');
+  var to      = (document.getElementById('ceo-email').value || cfg.ceoEmail || '').trim();
+  var cc      = (document.getElementById('cc-email').value  || cfg.ccEmail  || '').trim();
+  var period  = document.getElementById('rpt-period').value || '';
+  var pfx     = (document.getElementById('email-subject-prefix').value || cfg.subjectPfx || '[Weekly Sales Report] ViewLife AIO').trim();
+  var subject = pfx + ' · ' + period;
+  var domain  = (document.getElementById('bitrix-domain').value || cfg.bitrixDomain || '').trim().replace(/^https?:\/\//,'').replace(/\/$/,'');
+  if (!to) { alert('⚠ Vui lòng nhập email người nhận trước.'); return; }
+  if (method === 'bitrix') {
+    if (!domain) { alert('⚠ Vui lòng nhập Bitrix24 domain.\nVí dụ: remann.bitrix24.vn'); return; }
+    var url = 'https://' + domain + '/mail/compose/'
+      + '?to=' + encodeURIComponent(to) + '&subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(body) + (cc ? '&cc=' + encodeURIComponent(cc) : '');
+    window.open(url, '_blank');
+    if (navigator.clipboard) navigator.clipboard.writeText(body).catch(function(){});
+    showBitrixHelper(domain, to, subject);
+  } else {
+    window.open('mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject)
+      + (cc ? '&cc=' + encodeURIComponent(cc) : '') + '&body=' + encodeURIComponent(body), '_blank');
+  }
+}
+function copyReportToClipboard() {
+  var txt = generateReport();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(function() { alert('✅ Đã copy!\nVào Bitrix24 → Compose → Ctrl+V để paste.'); });
+  } else {
+    var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    alert('✅ Đã copy!');
+  }
+}
+function showBitrixHelper(domain, to, subject) {
+  var el = document.getElementById('bitrix-helper'); if (!el) return;
+  document.getElementById('bh-to').textContent = to;
+  document.getElementById('bh-subject').textContent = subject;
+  document.getElementById('bh-domain').textContent = domain;
+  el.style.display = 'flex';
+}
+function openPresetModal() {
+  var p = JSON.parse(localStorage.getItem('vl_presets') || '{}');
+  document.getElementById('preset-ceo-to').value  = p.ceoTo  || '';
+  document.getElementById('preset-ceo-cc').value  = p.ceoCc  || '';
+  document.getElementById('preset-team-to').value = p.teamTo || '';
+  document.getElementById('preset-team-cc').value = p.teamCc || '';
+  document.getElementById('preset-mgmt-to').value = p.managementTo || '';
+  document.getElementById('preset-mgmt-cc').value = p.managementCc || '';
+  document.getElementById('modal-presets').style.display = 'flex';
+}
+function closePresetModal() { document.getElementById('modal-presets').style.display = 'none'; }
+function savePresets() {
+  localStorage.setItem('vl_presets', JSON.stringify({
+    ceoTo: document.getElementById('preset-ceo-to').value.trim(),
+    ceoCc: document.getElementById('preset-ceo-cc').value.trim(),
+    teamTo: document.getElementById('preset-team-to').value.trim(),
+    teamCc: document.getElementById('preset-team-cc').value.trim(),
+    managementTo: document.getElementById('preset-mgmt-to').value.trim(),
+    managementCc: document.getElementById('preset-mgmt-cc').value.trim(),
+  }));
+  closePresetModal(); alert('✅ Đã lưu danh sách gửi!');
+}
+function applyPreset(name) {
+  var p = JSON.parse(localStorage.getItem('vl_presets') || '{}');
+  var map = { ceo:{to:p.ceoTo,cc:p.ceoCc}, team:{to:p.teamTo,cc:p.teamCc}, management:{to:p.managementTo,cc:p.managementCc} };
+  var sel = map[name]; if (!sel||!sel.to) { openPresetModal(); return; }
+  document.getElementById('ceo-email').value = sel.to;
+  document.getElementById('cc-email').value  = sel.cc||'';
+  saveEmailCfg(); updateEmailCfgStatus();
 }
 
 function saveReport() {
@@ -1797,10 +1938,56 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
 (function init() {
   DB.seed();
   document.getElementById('current-week').textContent=`W${weekNum()} · ${new Date().toLocaleString('en',{month:'short',year:'numeric'})}`;
-  document.getElementById('rpt-date').value=today();
+  document.getElementById('rpt-date').value=today();  loadEmailCfg();
   renderDashboard();
   document.getElementById('pipeline-badge').textContent=DB.deals().filter(d=>!['Won','Lost'].includes(d.stage)).length;
 })();
-</script>
-</body>
+</script> 
+<!-- MODAL PRESETS -->
+<div id="modal-presets" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;font-family:inherit;">
+  <div style="background:#1E2D45;border:1px solid #243352;border-radius:10px;width:500px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:22px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="font-size:15px;font-weight:700;">⚙ Danh sách gửi nhanh</span>
+      <span onclick="closePresetModal()" style="cursor:pointer;color:#4A5C73;font-size:20px;">✕</span>
+    </div>
+    <p style="font-size:12px;color:#94A3B8;margin-bottom:16px;">Điền sẵn email cho từng nhóm. Nhấn nút nhanh ở Weekly Report để tự điền.</p>
+    <div style="font-size:11px;font-weight:700;color:#3B82F6;margin-bottom:8px;">🎯 CEO Only</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div><label style="font-size:10px;color:#94A3B8;display:block;margin-bottom:4px;">To</label><input id="preset-ceo-to" type="email" placeholder="ceo@remann.vn" style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;"></div>
+      <div><label style="font-size:10px;color:#94A3B8;display:block;margin-bottom:4px;">CC</label><input id="preset-ceo-cc" type="text" placeholder="" style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;"></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:#10B981;margin-bottom:8px;">👥 Full Team</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div><label style="font-size:10px;color:#94A3B8;display:block;margin-bottom:4px;">To</label><input id="preset-team-to" type="email" placeholder="ceo@remann.vn" style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;"></div>
+      <div><label style="font-size:10px;color:#94A3B8;display:block;margin-bottom:4px;">CC (toàn team)</label><input id="preset-team-cc" type="text" placeholder="sales@remann.vn, ops@remann.vn" style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;"></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:#F59E0B;margin-bottom:8px;">🏢 Management</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+      <div><label style="font-size:10px;color:#94A3B8;display:block;margin-bottom:4px;">To</label><input id="preset-mgmt-to" type="email" placeholder="ceo@remann.vn" style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;"></div>
+      <div><label style="font-size:10px;color:#94A3B8;display:block;margin-bottom:4px;">CC</label><input id="preset-mgmt-cc" type="text" placeholder="director@remann.vn" style="width:100%;background:#162033;border:1px solid #243352;color:#F0F4FF;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;">
+      <button onclick="closePresetModal()" style="background:transparent;border:1px solid #243352;color:#94A3B8;border-radius:7px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">Huỷ</button>
+      <button onclick="savePresets()" style="background:#3B82F6;border:none;color:#fff;border-radius:7px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">Lưu danh sách</button>
+    </div>
+  </div>
+</div>
+
+<!-- BITRIX HELPER BANNER -->
+<div id="bitrix-helper" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:400;background:#1E2D45;border:1px solid #FF5752;border-radius:12px;padding:18px 20px;width:520px;max-width:95vw;box-shadow:0 12px 40px rgba(0,0,0,.5);font-family:inherit;flex-direction:column;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div style="font-size:14px;font-weight:700;color:#FF5752;">🟥 Bitrix24 đã mở — Kiểm tra</div>
+    <span onclick="document.getElementById('bitrix-helper').style.display='none'" style="cursor:pointer;color:#4A5C73;font-size:18px;">✕</span>
+  </div>
+  <div style="font-size:12px;color:#94A3B8;line-height:1.8;">
+    ✅ To: <span id="bh-to" style="color:#60A5FA;font-family:monospace;"></span><br>
+    ✅ Subject: <span id="bh-subject" style="color:#60A5FA;font-family:monospace;font-size:11px;"></span><br>
+    <span style="color:#4A5C73;">Nếu phần thân email trống → nhấn Copy rồi paste vào ô soạn thảo Bitrix24.</span>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:12px;">
+    <button onclick="copyReportToClipboard()" style="flex:1;background:#FF5752;color:#fff;border:none;border-radius:7px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;">📋 Copy nội dung báo cáo</button>
+    <button onclick="window.open('https://'+document.getElementById('bh-domain').textContent+'/mail/','_blank')" style="flex:1;background:transparent;color:#60A5FA;border:1px solid #243352;border-radius:7px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;">🔗 Mở lại Bitrix24 Mail</button>
+  </div>
+  <span id="bh-domain" style="display:none;"></span>
+</div> </body>
 </html>
