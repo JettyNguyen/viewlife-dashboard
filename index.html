@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ViewLife Sales Command Center — REMANn Co., Ltd.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0B1221;
+  --navy-mid: #162033;
+  --navy-card: #1E2D45;
+  --navy-border: #243352;
+  --blue: #3B82F6;
+  --blue-bright: #60A5FA;
+  --blue-dim: #1D3461;
+  --green: #10B981;
+  --green-dim: #064E3B;
+  --amber: #F59E0B;
+  --amber-dim: #451A03;
+  --red: #EF4444;
+  --red-dim: #450A0A;
+  --text-primary: #F0F4FF;
+  --text-secondary: #94A3B8;
+  --text-muted: #4A5C73;
+  --sidebar-w: 220px;
+  --header-h: 56px;
+  --radius: 10px;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--navy); color: var(--text-primary); font-family: var(--font); font-size: 14px; }
+a { color: var(--blue-bright); text-decoration: none; }
+
+/* ── LAYOUT ── */
+.app { display: flex; height: 100vh; overflow: hidden; }
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--navy-mid);
+  border-right: 1px solid var(--navy-border);
+  display: flex; flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.sidebar-logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--navy-border);
+}
+.sidebar-logo .brand { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.sidebar-logo .sub { font-size: 10px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+.sidebar-logo .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+.nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+.nav-section { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; padding: 12px 8px 5px; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: 7px;
+  cursor: pointer; transition: background .15s, color .15s;
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--navy-card); color: var(--text-primary); }
+.nav-item.active { background: var(--blue-dim); color: var(--blue-bright); }
+.nav-item .icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-badge { margin-left: auto; background: var(--blue); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+
+.sidebar-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--navy-border);
+  font-size: 11px; color: var(--text-muted);
+}
+.sidebar-footer .user { font-weight: 600; color: var(--text-secondary); font-size: 12px; }
+
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.topbar {
+  height: var(--header-h); min-height: var(--header-h);
+  background: var(--navy-mid);
+  border-bottom: 1px solid var(--navy-border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+}
+.topbar-title { font-size: 15px; font-weight: 600; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.week-badge {
+  background: var(--blue-dim); color: var(--blue-bright);
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px;
+  font-family: var(--mono);
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none; transition: all .15s;
+}
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: #2563EB; }
+.btn-outline { background: transparent; border: 1px solid var(--navy-border); color: var(--text-secondary); }
+.btn-outline:hover { border-color: var(--blue); color: var(--blue-bright); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { background: #059669; }
+.btn-amber { background: var(--amber); color: #000; }
+.btn-red { background: var(--red); color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+.content { flex: 1; overflow-y: auto; padding: 22px 24px; }
+
+/* ── PANELS ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 10px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-header .card-title { margin-bottom: 0; }
+
+/* ── KPI GRID ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.kpi-card {
+  background: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative; overflow: hidden;
+}
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--accent, var(--blue));
+}
+.kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); }
+.kpi-value { font-size: 24px; font-weight: 700; font-family: var(--mono); margin: 6px 0 2px; color: var(--text-primary); }
+.kpi-sub { font-size: 11px; color: var(--text-secondary); }
+.kpi-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; margin-top: 4px; }
+.kpi-delta.up { color: var(--green); }
+.kpi-delta.down { color: var(--red); }
+
+/* ── GRID LAYOUTS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-65-35 { display: grid; grid-template-columns: 1.8fr 1fr; gap: 16px; }
+.gap-16 { gap: 16px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mt-16 { margin-top: 16px; }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap { margin-bottom: 12px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+.progress-label .name { color: var(--text-secondary); font-weight: 500; }
+.progress-label .pct { color: var(--text-primary); font-weight: 700; font-family: var(--mono); }
+.progress-bar-bg { background: var(--navy-border); border-radius: 4px; height: 6px; }
+.progress-bar-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); padding: 8px 12px; border-bottom: 1px solid var(--navy-border); background: var(--navy-mid); }
+td { padding: 9px 12px; font-size: 12px; border-bottom: 1px solid var(--navy-border); color: var(--text-secondary); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(59,130,246,.05); color: var(--text-primary); }
+td.mono { font-family: var(--mono); font-size: 12px; }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.badge-blue { background: var(--blue-dim); color: var(--blue-bright); }
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-gray { background: #1F2937; color: #9CA3AF; }
+
+/* ── FUNNEL ── */
+.funnel-stage {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; margin-bottom: 6px;
+  background: var(--navy-mid); border-radius: 8px; border: 1px solid var(--navy-border);
+}
+.funnel-bar-wrap { flex: 1; }
+.funnel-name { font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
+.funnel-count { font-size: 18px; font-weight: 700; font-family: var(--mono); color: var(--text-primary); }
+.funnel-val { font-size: 10px; color: var(--text-muted); margin-left: 6px; }
+
+/* ── FORMS ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+input, select, textarea {
+  background: var(--navy-mid); border: 1px solid var(--navy-border);
+  color: var(--text-primary); border-radius: 7px; padding: 8px 10px;
+  font-size: 12px; font-family: var(--font); outline: none;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--blue); }
+textarea { resize: vertical; min-height: 72px; }
+select option { background: var(--navy-card); }
+
+/* ── PIPELINE DEAL CARD ── */
+.deal-card {
+  background: var(--navy-mid); border: 1px solid var(--navy-border);
+  border-radius: 8px; padding: 12px; margin-bottom: 10px;
+}
+.deal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.deal-name { font-size: 13px; font-weight: 600; }
+.deal-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.deal-meta span { font-size: 10px; color: var(--text-muted); }
+.deal-actions { display: flex; gap: 6px; margin-top: 8px; }
+
+/* ── EMAIL PREVIEW ── */
+.email-preview {
+  background: #0D1117; border: 1px solid var(--navy-border);
+  border-radius: 8px; padding: 20px; font-family: var(--mono); font-size: 12px;
+  white-space: pre-wrap; color: #ABB2BF; line-height: 1.6;
+  max-height: 500px; overflow-y: auto;
+}
+
+/* ── CHART CONTAINER ── */
+.chart-box { position: relative; }
+.chart-box canvas { max-height: 240px; }
+
+/* ── ACCOUNT ACTIVITY ── */
+.activity-item {
+  display: flex; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--navy-border);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.activity-date { font-size: 10px; color: var(--text-muted); font-family: var(--mono); }
+.activity-account { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.activity-detail { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.activity-outcome { font-size: 11px; color: var(--green); margin-top: 2px; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--navy-card); border: 1px solid var(--navy-border);
+  border-radius: var(--radius); width: 560px; max-width: 95vw;
+  max-height: 85vh; overflow-y: auto; padding: 22px;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.modal-title { font-size: 15px; font-weight: 700; }
+.modal-close { cursor: pointer; color: var(--text-muted); font-size: 18px; line-height: 1; }
+.modal-close:hover { color: var(--text-primary); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+/* ── TARGET PULSE ── */
+.target-pulse {
+  background: linear-gradient(135deg, var(--blue-dim), var(--navy-card));
+  border: 1px solid var(--blue);
+  animation: target-glow 3s ease-in-out infinite;
+}
+@keyframes target-glow {
+  0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.0)}
+  50%{box-shadow:0 0 14px 2px rgba(59,130,246,.2)}
+}
+
+/* ── CHANNEL TAG ── */
+.channel-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--navy-border); }
+.channel-row:last-child { border-bottom: none; }
+
+/* ── SKU TABLE ── */
+.sku-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--blue-dim); color: var(--blue-bright); font-family: var(--mono); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--navy-border); border-radius: 4px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .grid-2, .grid-3, .grid-65-35 { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .sidebar { width: 52px; min-width: 52px; }
+  .nav-item span:not(.icon) { display: none; }
+  .sidebar-logo .brand, .sidebar-logo .sub { display: none; }
+  .nav-section { display: none; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.divider { border: none; border-top: 1px solid var(--navy-border); margin: 18px 0; }
+.text-green { color: var(--green); }
+.text-amber { color: var(--amber); }
+.text-red { color: var(--red); }
+.text-blue { color: var(--blue-bright); }
+.text-muted { color: var(--text-muted); }
+.text-sm { font-size: 11px; }
+.text-xs { font-size: 10px; }
+.flex-center { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-8 { gap: 8px; }
+.gap-6 { gap: 6px; }
+.w-full { width: 100%; }
+.mono { font-family: var(--mono); }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand"><span class="dot"></span>ViewLife</div>
+    <div class="sub">REMANn Sales Hub</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" onclick="showPanel('dashboard')">
+      <span class="icon">📊</span><span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('pipeline')">
+      <span class="icon">🎯</span><span>Pipeline</span>
+      <span class="nav-badge" id="pipeline-badge">0</span>
+    </div>
+
+    <div class="nav-section">Sales</div>
+    <div class="nav-item" onclick="showPanel('accounts')">
+      <span class="icon">🏢</span><span>Key Accounts</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('products')">
+      <span class="icon">💻</span><span>Products & SKU</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('margin')">
+      <span class="icon">💰</span><span>Revenue & Margin</span>
+    </div>
+
+    <div class="nav-section">Reporting</div>
+    <div class="nav-item" onclick="showPanel('weekly')">
+      <span class="icon">📝</span><span>Weekly Report</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('targets')">
+      <span class="icon">📈</span><span>Targets</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('history')">
+      <span class="icon">🗓️</span><span>Report History</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user">Nguyen Ngoc Huyen</div>
+    <div>Sales Manager · AIO Division</div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">📊 Dashboard</div>
+    <div class="topbar-right">
+      <div class="week-badge" id="current-week">W34 · Aug 2026</div>
+      <button class="btn btn-primary" onclick="openAddDeal()">＋ Add Deal</button>
+      <button class="btn btn-outline" onclick="showPanel('weekly')">📤 Weekly Report</button>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <!-- ══════════════════════════════════════
+         PANEL: DASHBOARD
+    ══════════════════════════════════════ -->
+    <div class="panel active" id="panel-dashboard">
+      <!-- KPI Row -->
+      <div class="kpi-grid" id="kpi-row"></div>
+
+      <!-- Charts Row -->
+      <div class="grid-65-35 mb-16">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Weekly Revenue Trend (VND)</span>
+            <span class="text-muted text-xs">Last 8 weeks</span>
+          </div>
+          <div class="chart-box"><canvas id="chart-revenue"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Units by Channel</span>
+          </div>
+          <div class="chart-box"><canvas id="chart-channel"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Pipeline + SKU Row -->
+      <div class="grid-2 mb-16">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Pipeline Funnel</span>
+            <button class="btn btn-outline btn-sm" onclick="showPanel('pipeline')">View All</button>
+          </div>
+          <div id="funnel-mini"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Units Sold by SKU · This Month</span>
+          </div>
+          <div class="chart-box"><canvas id="chart-sku"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Weekly Target + Account Activity -->
+      <div class="grid-2">
+        <div class="card target-pulse">
+          <div class="card-header">
+            <span class="card-title">Weekly Target Progress</span>
+            <span id="week-label-dash" class="text-xs text-muted"></span>
+          </div>
+          <div id="weekly-targets-dash"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Account Activity</span>
+            <button class="btn btn-outline btn-sm" onclick="showPanel('accounts')">View All</button>
+          </div>
+          <div id="recent-activity"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: PIPELINE
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-pipeline">
+      <div class="kpi-grid" id="pipeline-kpis"></div>
+      <div class="grid-65-35">
+        <div>
+          <div class="card mb-16">
+            <div class="card-header">
+              <span class="card-title">Open Deals</span>
+              <div style="display:flex;gap:8px;">
+                <select id="filter-stage" onchange="renderDeals()" style="font-size:11px;padding:4px 8px;">
+                  <option value="">All Stages</option>
+                  <option>Prospect</option>
+                  <option>Qualified</option>
+                  <option>Proposal Sent</option>
+                  <option>Negotiation</option>
+                  <option>Won</option>
+                  <option>Lost</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="openAddDeal()">＋ New Deal</button>
+              </div>
+            </div>
+            <div id="deal-list"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb-16">
+            <div class="card-header"><span class="card-title">Funnel Overview</span></div>
+            <div id="funnel-full"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Pipeline by Channel</span></div>
+            <div class="chart-box"><canvas id="chart-pipeline-channel"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: KEY ACCOUNTS
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-accounts">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;">Key Account Activity Log</div>
+          <div class="text-muted text-sm">Track every interaction, meeting & follow-up</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddActivity()">＋ Log Activity</button>
+      </div>
+      <div class="card mb-16">
+        <div class="card-header">
+          <span class="card-title">Account Health Overview</span>
+        </div>
+        <div id="account-health-table"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Activity Timeline</span>
+          <select id="filter-account" onchange="renderActivities()" style="font-size:11px;padding:4px 8px;">
+            <option value="">All Accounts</option>
+          </select>
+        </div>
+        <div id="activity-list"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: PRODUCTS
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-products">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;">Product Performance & SKU Tracker</div>
+          <div class="text-muted text-sm">ViewLife AIO PC — all models</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddSale()">＋ Record Sale</button>
+      </div>
+      <div class="kpi-grid" id="product-kpis"></div>
+
+      <!-- Pricing Reference -->
+      <div class="card mb-16">
+        <div class="card-header"><span class="card-title">Pricing Reference (ViewLife v3.1)</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Model</th><th>Spec</th><th>Import Cost</th><th>List excl.VAT</th><th>Auth Margin</th><th>Shopee SRP incl.VAT</th></tr></thead>
+            <tbody>
+              <tr><td><span class="sku-pill">G5400</span></td><td>Pentium G5400 / 8GB / 256GB SSD / Win11</td><td class="mono">5,782,626₫</td><td class="mono">7,150,000₫</td><td><span class="badge badge-green">19.1%</span></td><td class="mono">8,331,120₫</td></tr>
+              <tr><td><span class="sku-pill">N5095-T</span></td><td>N5095 / 8GB / 128GB NVMe / Touch</td><td class="mono">7,244,930₫</td><td class="mono">9,100,000₫</td><td><span class="badge badge-green">~17%</span></td><td class="mono">—</td></tr>
+              <tr><td><span class="sku-pill">1315U</span></td><td>i3-13th / 16GB / 256GB / Webcam / Win11</td><td class="mono">10,742,000₫</td><td class="mono">13,450,000₫</td><td><span class="badge badge-green">18.9%</span></td><td class="mono">15,455,664₫</td></tr>
+              <tr><td><span class="sku-pill">1345U</span></td><td>i5-13th / 16GB / SSD Optional / Webcam</td><td class="mono">12,737,183₫</td><td class="mono">15,950,000₫</td><td><span class="badge badge-green">19.1%</span></td><td class="mono">17,524,080₫</td></tr>
+              <tr><td><span class="sku-pill">1345U-B</span></td><td>i5-13th / 16GB / 256GB / Black / Win11</td><td class="mono">10,884,014₫</td><td class="mono">13,650,000₫</td><td><span class="badge badge-green">~19%</span></td><td class="mono">—</td></tr>
+              <tr><td><span class="sku-pill">1345U-B512</span></td><td>i5-13th / 16GB / 512GB / Black / Win11</td><td class="mono">14,149,859₫</td><td class="mono">17,700,000₫</td><td><span class="badge badge-green">~19%</span></td><td class="mono">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2 mb-16">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Units Sold by Model</span></div>
+          <div class="chart-box"><canvas id="chart-units"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Revenue by Model (VND)</span></div>
+          <div class="chart-box"><canvas id="chart-rev-model"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Sales Log</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Model</th><th>Qty</th><th>Channel / Tier</th><th>Unit Price</th><th>Revenue</th><th>Margin %</th><th>Account</th></tr></thead>
+            <tbody id="sales-log-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: REVENUE & MARGIN
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-margin">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:700;">Revenue & Margin Analysis</div>
+        <div class="text-muted text-sm">VAT 8% · Max discount 16% (Platinum ≥100u)</div>
+      </div>
+      <div class="kpi-grid" id="margin-kpis"></div>
+      <div class="grid-2 mb-16">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Monthly Revenue vs Target</span></div>
+          <div class="chart-box"><canvas id="chart-monthly-rev"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Gross Margin by Channel</span></div>
+          <div class="chart-box"><canvas id="chart-margin-channel"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Discount Tier Reference</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Tier</th><th>Base</th><th>≥50 units</th><th>≥100 units</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Authorized</td><td>–5%</td><td>–7%</td><td>–9%</td><td class="text-muted">Entry level partners</td></tr>
+              <tr><td>Silver</td><td>–8%</td><td>–10%</td><td>–12%</td><td class="text-muted">Regional resellers</td></tr>
+              <tr><td>Gold</td><td>–12%</td><td>–14%</td><td>–15%</td><td class="text-muted">Key accounts</td></tr>
+              <tr><td>Platinum</td><td>–14%</td><td>–15%</td><td class="text-amber">–16% MAX</td><td class="text-muted">National chains (Pico, Media Mart)</td></tr>
+              <tr><td>Online/Shopee</td><td>+12% vs Auth</td><td>—</td><td>—</td><td class="text-muted">Clause 8.1 · 10.5% platform fee</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: WEEKLY REPORT
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-weekly">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;">Weekly Sales Report Generator</div>
+          <div class="text-muted text-sm">Fill in → Preview → Send to CEO by Friday</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="loadLastWeek()">📋 Load Last Week</button>
+          <button class="btn btn-green" onclick="generateReport()">⚡ Generate Report</button>
+        </div>
+      </div>
+
+      <div class="grid-65-35">
+        <!-- Form -->
+        <div>
+          <!-- Section 1: Header -->
+          <div class="card mb-16">
+            <div class="card-title">Report Header</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Reporting Period</label>
+                <input type="text" id="rpt-period" placeholder="e.g. 18–22 Aug 2026" />
+              </div>
+              <div class="form-group">
+                <label>Date Prepared</label>
+                <input type="date" id="rpt-date" />
+              </div>
+              <div class="form-group">
+                <label>Week Revenue (VND)</label>
+                <input type="number" id="rpt-rev" placeholder="e.g. 250000000" />
+              </div>
+              <div class="form-group">
+                <label>Units Sold This Week</label>
+                <input type="number" id="rpt-units" placeholder="e.g. 18" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Key Account Activity -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span class="card-title">1. Key Account Activity</span>
+              <button class="btn btn-outline btn-sm" onclick="addAccountRow()">+ Row</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Date</th><th>Account</th><th>Meeting / Contact</th><th>Outcome</th><th>Follow-up</th><th></th></tr></thead>
+                <tbody id="rpt-accounts-body">
+                  <tr>
+                    <td><input type="text" placeholder="20/08" style="width:70px;padding:4px;"></td>
+                    <td><input type="text" placeholder="Pico" style="width:90px;padding:4px;"></td>
+                    <td><input type="text" placeholder="Meeting detail" style="width:140px;padding:4px;"></td>
+                    <td><input type="text" placeholder="Outcome" style="width:140px;padding:4px;"></td>
+                    <td><input type="text" placeholder="Next step" style="width:120px;padding:4px;"></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 3: Pipeline -->
+          <div class="card mb-16">
+            <div class="card-header">
+              <span class="card-title">2. Sales Pipeline (Open Deals)</span>
+              <button class="btn btn-outline btn-sm" onclick="addPipelineRow()">+ Row</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Account</th><th>Product / Qty</th><th>Est. Size (VND)</th><th>Stage</th><th>Est. Close</th><th></th></tr></thead>
+                <tbody id="rpt-pipeline-body">
+                  <tr>
+                    <td><input type="text" placeholder="Account" style="width:100px;padding:4px;"></td>
+                    <td><input type="text" placeholder="1315U × 20" style="width:110px;padding:4px;"></td>
+                    <td><input type="text" placeholder="270,000,000" style="width:110px;padding:4px;"></td>
+                    <td>
+                      <select style="width:110px;padding:4px;">
+                        <option>Prospect</option><option>Qualified</option>
+                        <option>Proposal Sent</option><option>Negotiation</option>
+                      </select>
+                    </td>
+                    <td><input type="text" placeholder="Sep 2026" style="width:80px;padding:4px;"></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="this.closest('tr').remove()">✕</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section 4: Issues -->
+          <div class="card mb-16">
+            <div class="card-title">3. Issues & Challenges</div>
+            <textarea id="rpt-issues" rows="3" placeholder="e.g. Stock shortage on 1315U · Pico requesting longer payment terms · Shopee ranking dropped"></textarea>
+          </div>
+
+          <!-- Section 5: Plan Next Week -->
+          <div class="card mb-16">
+            <div class="card-title">4. Plan for Next Week</div>
+            <textarea id="rpt-plan" rows="3" placeholder="e.g. Follow up with Pico category manager · Demo to 3 new prospects · Launch Shopee flash deal"></textarea>
+          </div>
+
+          <!-- Section 6: Support Requested -->
+          <div class="card mb-16">
+            <div class="card-title">5. Support Requested (CEO / Other Depts.)</div>
+            <textarea id="rpt-support" rows="2" placeholder="e.g. Approval for Gold discount on Nguyen Dinh Chieu deal · Marketing budget for Shopee ads"></textarea>
+          </div>
+
+          <!-- CEO email -->
+          <div class="card mb-16">
+            <div class="card-title">Send Report</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>CEO / Manager Email</label>
+                <input type="email" id="ceo-email" placeholder="ceo@remann.vn" />
+              </div>
+              <div class="form-group">
+                <label>CC (optional)</label>
+                <input type="email" id="cc-email" placeholder="team@remann.vn" />
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-green" style="flex:1" onclick="sendEmail()">📤 Send via Email Client</button>
+            <button class="btn btn-outline" onclick="saveReport()">💾 Save Report</button>
+            <button class="btn btn-outline" onclick="printReport()">🖨️ Print / PDF</button>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div>
+          <div class="card" style="position:sticky;top:0;">
+            <div class="card-header">
+              <span class="card-title">Email Preview</span>
+              <button class="btn btn-outline btn-sm" onclick="generateReport()">↻ Refresh</button>
+            </div>
+            <div class="email-preview" id="email-preview">
+Click "⚡ Generate Report" to preview your weekly email here.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: TARGETS
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-targets">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;">Sales Targets & Progress</div>
+          <div class="text-muted text-sm">Weekly · Monthly · Quarterly — set and track</div>
+        </div>
+        <button class="btn btn-primary" onclick="openTargetModal()">⚙ Set Targets</button>
+      </div>
+
+      <div class="kpi-grid" id="target-kpis"></div>
+
+      <div class="grid-2 mb-16">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Weekly Progress</span></div>
+          <div id="weekly-progress"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Monthly Progress</span></div>
+          <div id="monthly-progress"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Quarterly Roadmap</span></div>
+        <div class="chart-box"><canvas id="chart-quarterly" style="max-height:200px;"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PANEL: HISTORY
+    ══════════════════════════════════════ -->
+    <div class="panel" id="panel-history">
+      <div style="margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:700;">Report History</div>
+        <div class="text-muted text-sm">All saved weekly reports</div>
+      </div>
+      <div class="card">
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Week</th><th>Period</th><th>Revenue</th><th>Units</th><th>Issues</th><th>Saved</th><th></th></tr></thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <div id="history-empty" style="text-align:center;padding:32px;color:var(--text-muted);">
+          No saved reports yet. Generate and save your first weekly report.
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- Add Deal -->
+<div class="modal-overlay" id="modal-deal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Add / Edit Deal</span>
+      <span class="modal-close" onclick="closeModal('modal-deal')">✕</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Account Name</label><input id="d-account" placeholder="e.g. Pico Vietnam" /></div>
+      <div class="form-group"><label>Contact Person</label><input id="d-contact" placeholder="Name / Role" /></div>
+      <div class="form-group"><label>Product / Model</label>
+        <select id="d-model">
+          <option>G5400</option><option>N5095-TOUCH</option><option>1315U</option>
+          <option>1345U</option><option>1345U-Black</option><option>1345U-Black 512</option><option>Mixed</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="d-qty" placeholder="50" /></div>
+      <div class="form-group"><label>Channel / Tier</label>
+        <select id="d-tier">
+          <option>Authorized</option><option>Silver</option><option>Gold</option><option>Platinum</option><option>Online/Shopee</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Stage</label>
+        <select id="d-stage">
+          <option>Prospect</option><option>Qualified</option><option>Proposal Sent</option>
+          <option>Negotiation</option><option>Won</option><option>Lost</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Est. Deal Value (VND)</label><input type="number" id="d-value" placeholder="270000000" /></div>
+      <div class="form-group"><label>Est. Close Date</label><input type="date" id="d-close" /></div>
+      <div class="form-group full"><label>Notes</label><textarea id="d-notes" rows="2" placeholder="Key info, objections, next steps..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-deal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDeal()">Save Deal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Activity -->
+<div class="modal-overlay" id="modal-activity">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Log Account Activity</span>
+      <span class="modal-close" onclick="closeModal('modal-activity')">✕</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="a-date" /></div>
+      <div class="form-group"><label>Account</label><input id="a-account" placeholder="e.g. Pico Vietnam" /></div>
+      <div class="form-group"><label>Contact / Role</label><input id="a-contact" placeholder="Category Manager" /></div>
+      <div class="form-group"><label>Type</label>
+        <select id="a-type">
+          <option>Meeting</option><option>Call</option><option>Email</option>
+          <option>Demo</option><option>Proposal</option><option>Follow-up</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Details</label><textarea id="a-detail" rows="2" placeholder="What was discussed..."></textarea></div>
+      <div class="form-group full"><label>Outcome / Response</label><textarea id="a-outcome" rows="2" placeholder="Result of the interaction..."></textarea></div>
+      <div class="form-group full"><label>Follow-up Action</label><input id="a-followup" placeholder="e.g. Send proposal by 25 Aug" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-activity')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveActivity()">Save Activity</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Sale -->
+<div class="modal-overlay" id="modal-sale">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Record Sale</span>
+      <span class="modal-close" onclick="closeModal('modal-sale')">✕</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Date</label><input type="date" id="s-date" /></div>
+      <div class="form-group"><label>Model</label>
+        <select id="s-model">
+          <option>G5400</option><option>N5095-TOUCH</option><option>1315U</option>
+          <option>1345U</option><option>1345U-Black</option><option>1345U-Black 512</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="s-qty" placeholder="10" /></div>
+      <div class="form-group"><label>Unit Price (VND, excl.VAT)</label><input type="number" id="s-price" placeholder="12777500" /></div>
+      <div class="form-group"><label>Channel / Tier</label>
+        <select id="s-tier">
+          <option>Authorized</option><option>Silver</option><option>Gold</option><option>Platinum</option><option>Online/Shopee</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Account</label><input id="s-account" placeholder="Customer name" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-sale')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSale()">Record Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- Set Targets -->
+<div class="modal-overlay" id="modal-targets">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Set Sales Targets</span>
+      <span class="modal-close" onclick="closeModal('modal-targets')">✕</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>Weekly Revenue Target (VND)</label><input type="number" id="t-weekly-rev" placeholder="250000000" /></div>
+      <div class="form-group"><label>Weekly Units Target</label><input type="number" id="t-weekly-units" placeholder="20" /></div>
+      <div class="form-group"><label>Monthly Revenue Target (VND)</label><input type="number" id="t-monthly-rev" placeholder="1000000000" /></div>
+      <div class="form-group"><label>Monthly Units Target</label><input type="number" id="t-monthly-units" placeholder="80" /></div>
+      <div class="form-group"><label>Q3 Revenue Target (VND)</label><input type="number" id="t-q3-rev" placeholder="3000000000" /></div>
+      <div class="form-group"><label>New Accounts Target (Month)</label><input type="number" id="t-accounts" placeholder="5" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-targets')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTargets()">Save Targets</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DATA LAYER — localStorage persistence
+// ═══════════════════════════════════════════════════════════
+const DB = {
+  load: k => { try { return JSON.parse(localStorage.getItem('vl_'+k) || 'null'); } catch { return null; } },
+  save: (k, v) => localStorage.setItem('vl_'+k, JSON.stringify(v)),
+  deals: () => DB.load('deals') || [],
+  activities: () => DB.load('activities') || [],
+  sales: () => DB.load('sales') || [],
+  targets: () => DB.load('targets') || { weeklyRev:250000000, weeklyUnits:20, monthlyRev:1000000000, monthlyUnits:80, q3Rev:3000000000, accounts:5 },
+  reports: () => DB.load('reports') || [],
+  seed: () => {
+    // Seed sample data if empty
+    if (!DB.load('seeded')) {
+      const now = new Date(); const iso = d => d.toISOString().split('T')[0];
+      const w = (n) => { let d = new Date(); d.setDate(d.getDate()-n); return iso(d); };
+      DB.save('deals', [
+        { id:1, account:'Pico Vietnam', contact:'Category Mgr', model:'1315U', qty:60, tier:'Platinum', stage:'Negotiation', value:740000000, close:'2026-09-15', notes:'Price approved, awaiting PO', created: w(5) },
+        { id:2, account:'Media Mart', contact:'Procurement', model:'1345U-Black', qty:40, tier:'Gold', stage:'Proposal Sent', value:560000000, close:'2026-09-30', notes:'Sent formal proposal 18/08', created: w(3) },
+        { id:3, account:'Nguyen Dinh Chieu School', contact:'IT Director', model:'1315U', qty:20, tier:'Authorized', stage:'Qualified', value:255550000, close:'2026-10-10', notes:'Demo scheduled 28/08', created: w(7) },
+        { id:4, account:'FPT Shop', contact:'Chain Manager', model:'G5400', qty:50, tier:'Silver', stage:'Prospect', value:325000000, close:'2026-10-30', notes:'Initial meeting done', created: w(10) },
+        { id:5, account:'ABC Corp', contact:'CFO', model:'1345U', qty:15, tier:'Gold', stage:'Won', value:217500000, close:'2026-08-10', notes:'Delivered, invoice sent', created: w(15) },
+      ]);
+      DB.save('activities', [
+        { id:1, date:'2026-08-20', account:'Pico Vietnam', contact:'Head of Department', type:'Meeting', detail:'Met with HOD re: AIO refresh for stores', outcome:'Transferred to category manager', followup:'Set up next meeting with new manager', created:'2026-08-20' },
+        { id:2, date:'2026-08-19', account:'Media Mart', contact:'Procurement Head', type:'Call', detail:'Follow-up on proposal sent 15/08', outcome:'Requested 2% additional discount on 1345U-Black', followup:'Escalate discount request to management', created:'2026-08-19' },
+        { id:3, date:'2026-08-18', account:'Nguyen Dinh Chieu School', contact:'IT Director', type:'Demo', detail:'On-site demo of 1315U for 20 units tender', outcome:'Very positive, performance exceeded expectation', followup:'Send formal quotation by 22/08', created:'2026-08-18' },
+        { id:4, date:'2026-08-15', account:'FPT Shop', contact:'Chain Manager', type:'Meeting', detail:'Intro meeting, presented ViewLife portfolio', outcome:'Interested in G5400 for budget segment', followup:'Send pricing + sample request', created:'2026-08-15' },
+      ]);
+      DB.save('sales', [
+        { id:1, date:'2026-08-10', model:'1345U', qty:15, unitPrice:14487500, tier:'Gold', account:'ABC Corp', margin:0.191, created:'2026-08-10' },
+        { id:2, date:'2026-08-05', model:'G5400', qty:25, unitPrice:6792500, tier:'Authorized', account:'TechWorld HCM', margin:0.191, created:'2026-08-05' },
+        { id:3, date:'2026-07-28', model:'1315U', qty:30, unitPrice:12777500, tier:'Silver', account:'FPT Retail Pilot', margin:0.152, created:'2026-07-28' },
+        { id:4, date:'2026-07-20', model:'1345U-Black', qty:20, unitPrice:13115000, tier:'Gold', account:'Dien May Xanh Pilot', margin:0.103, created:'2026-07-20' },
+        { id:5, date:'2026-07-15', model:'G5400', qty:50, unitPrice:6525000, tier:'Silver', account:'Nguyen Kim', margin:0.128, created:'2026-07-15' },
+        { id:6, date:'2026-07-08', model:'1315U', qty:10, unitPrice:11836000, tier:'Gold', account:'School Project A', margin:0.102, created:'2026-07-08' },
+      ]);
+      DB.save('seeded', true);
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+const fmt = n => new Intl.NumberFormat('vi-VN').format(Math.round(n)) + '₫';
+const fmtM = n => { if(n>=1e9) return (n/1e9).toFixed(2)+'B₫'; if(n>=1e6) return (n/1e6).toFixed(1)+'M₫'; return fmt(n); };
+const today = () => new Date().toISOString().split('T')[0];
+const weekNum = () => { const d=new Date(); const s=new Date(d.getFullYear(),0,1); return Math.ceil(((d-s)/86400000+s.getDay()+1)/7); };
+const monthStart = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`; };
+const stageColors = { Prospect:'#4A5C73', Qualified:'#1D3461', 'Proposal Sent':'#78350F', Negotiation:'#854D0E', Won:'#064E3B', Lost:'#450A0A' };
+const stageBadge = s => {
+  const m = { Prospect:'badge-gray', Qualified:'badge-blue', 'Proposal Sent':'badge-amber', Negotiation:'badge-amber', Won:'badge-green', Lost:'badge-red' };
+  return `<span class="badge ${m[s]||'badge-gray'}">${s}</span>`;
+};
+
+// ═══════════════════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════════════════
+const panelTitles = { dashboard:'📊 Dashboard', pipeline:'🎯 Sales Pipeline', accounts:'🏢 Key Accounts', products:'💻 Products & SKU', margin:'💰 Revenue & Margin', weekly:'📝 Weekly Report', targets:'📈 Targets', history:'🗓️ Report History' };
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes("'"+name+"'")) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = panelTitles[name] || '';
+  refreshPanel(name);
+}
+
+function refreshPanel(name) {
+  if (name==='dashboard') renderDashboard();
+  if (name==='pipeline') renderPipeline();
+  if (name==='accounts') renderAccounts();
+  if (name==='products') renderProducts();
+  if (name==='margin') renderMargin();
+  if (name==='targets') renderTargets();
+  if (name==='history') renderHistory();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════
+let charts = {};
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderDashboard() {
+  const sales = DB.sales();
+  const deals = DB.deals();
+  const tgt = DB.targets();
+
+  // Compute stats
+  const ms = monthStart();
+  const monthlySales = sales.filter(s => s.date >= ms);
+  const monthlyRev = monthlySales.reduce((a,s) => a+s.unitPrice*s.qty, 0);
+  const monthlyUnits = monthlySales.reduce((a,s) => a+s.qty, 0);
+  const avgMargin = sales.length ? sales.reduce((a,s) => a+s.margin,0)/sales.length : 0;
+  const openDeals = deals.filter(d => !['Won','Lost'].includes(d.stage));
+  const pipelineVal = openDeals.reduce((a,d) => a+d.value,0);
+  const wonDeals = deals.filter(d => d.stage==='Won');
+  const winRate = deals.length ? (wonDeals.length/deals.length*100).toFixed(0) : 0;
+
+  // KPI row
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi-card" style="--accent:${monthlyRev>=tgt.monthlyRev?'var(--green)':'var(--blue)'}">
+      <div class="kpi-label">Monthly Revenue</div>
+      <div class="kpi-value">${fmtM(monthlyRev)}</div>
+      <div class="kpi-sub">Target: ${fmtM(tgt.monthlyRev)}</div>
+      <div class="kpi-delta ${monthlyRev>=tgt.monthlyRev?'up':'down'}">${monthlyRev>=tgt.monthlyRev?'▲':'▼'} ${(monthlyRev/tgt.monthlyRev*100).toFixed(0)}% of target</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--green)">
+      <div class="kpi-label">Units Sold (Month)</div>
+      <div class="kpi-value">${monthlyUnits}</div>
+      <div class="kpi-sub">Target: ${tgt.monthlyUnits} units</div>
+      <div class="kpi-delta ${monthlyUnits>=tgt.monthlyUnits?'up':'down'}">${monthlyUnits>=tgt.monthlyUnits?'▲':'▼'} ${monthlyUnits}/${tgt.monthlyUnits}</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--amber)">
+      <div class="kpi-label">Pipeline Value</div>
+      <div class="kpi-value">${fmtM(pipelineVal)}</div>
+      <div class="kpi-sub">${openDeals.length} open deals</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--blue)">
+      <div class="kpi-label">Avg. Gross Margin</div>
+      <div class="kpi-value">${(avgMargin*100).toFixed(1)}%</div>
+      <div class="kpi-sub">Across all channels</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--green)">
+      <div class="kpi-label">Win Rate</div>
+      <div class="kpi-value">${winRate}%</div>
+      <div class="kpi-sub">${wonDeals.length} won / ${deals.length} total</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--amber)">
+      <div class="kpi-label">Active Accounts</div>
+      <div class="kpi-value">${[...new Set(DB.activities().map(a=>a.account))].length}</div>
+      <div class="kpi-sub">Unique accounts contacted</div>
+    </div>
+  `;
+
+  // Revenue trend chart
+  destroyChart('revenue');
+  const last8 = [];
+  for(let i=7;i>=0;i--) {
+    const d=new Date(); d.setDate(d.getDate()-i*7);
+    const ws=new Date(d); ws.setDate(ws.getDate()-6);
+    const wsStr=ws.toISOString().split('T')[0]; const deStr=d.toISOString().split('T')[0];
+    const rev=sales.filter(s=>s.date>=wsStr&&s.date<=deStr).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+    last8.push({ label:`W${weekNum()-7+i}`, rev });
+  }
+  charts['revenue'] = new Chart(document.getElementById('chart-revenue'), {
+    type:'line',
+    data:{
+      labels: last8.map(w=>w.label),
+      datasets:[{
+        label:'Revenue (VND)',
+        data: last8.map(w=>w.rev),
+        borderColor:'#3B82F6', backgroundColor:'rgba(59,130,246,.1)',
+        tension:.4, fill:true, pointBackgroundColor:'#3B82F6', pointRadius:4
+      },{
+        label:'Target',
+        data: last8.map(()=>tgt.weeklyRev),
+        borderColor:'rgba(245,158,11,.5)', borderDash:[5,5],
+        pointRadius:0, fill:false
+      }]
+    },
+    options:{ plugins:{legend:{labels:{color:'#94A3B8',font:{size:11}}}}, scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73',callback:v=>fmtM(v)},grid:{color:'#243352'}}}, responsive:true, maintainAspectRatio:false }
+  });
+
+  // Channel doughnut
+  destroyChart('channel');
+  const byChannel = {};
+  sales.forEach(s => { byChannel[s.tier]=(byChannel[s.tier]||0)+s.qty; });
+  charts['channel'] = new Chart(document.getElementById('chart-channel'), {
+    type:'doughnut',
+    data:{
+      labels: Object.keys(byChannel),
+      datasets:[{ data:Object.values(byChannel), backgroundColor:['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444'], borderWidth:0 }]
+    },
+    options:{ plugins:{legend:{position:'bottom',labels:{color:'#94A3B8',font:{size:10},padding:8}}}, cutout:'65%', responsive:true, maintainAspectRatio:false }
+  });
+
+  // Funnel mini
+  const stages = ['Prospect','Qualified','Proposal Sent','Negotiation','Won'];
+  const stageAccent = ['#4A5C73','#3B82F6','#F59E0B','#F97316','#10B981'];
+  const funnelEl = document.getElementById('funnel-mini');
+  funnelEl.innerHTML = stages.map((st,i) => {
+    const cnt = deals.filter(d=>d.stage===st).length;
+    const val = deals.filter(d=>d.stage===st).reduce((a,d)=>a+d.value,0);
+    const pct = deals.length ? (cnt/deals.length*100) : 0;
+    return `<div class="funnel-stage" style="border-left:3px solid ${stageAccent[i]}">
+      <div style="min-width:32px;text-align:center;font-size:20px;font-weight:700;font-family:var(--mono);color:${stageAccent[i]}">${cnt}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-name">${st}<span class="funnel-val">${fmtM(val)}</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${stageAccent[i]}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // SKU chart
+  destroyChart('sku');
+  const byModel = {};
+  monthlySales.forEach(s => { byModel[s.model]=(byModel[s.model]||0)+s.qty; });
+  charts['sku'] = new Chart(document.getElementById('chart-sku'), {
+    type:'bar',
+    data:{
+      labels: Object.keys(byModel),
+      datasets:[{ label:'Units', data:Object.values(byModel), backgroundColor:'#3B82F6', borderRadius:4 }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73'},grid:{color:'#243352'}}}, responsive:true, maintainAspectRatio:false }
+  });
+
+  // Weekly targets
+  const weeklyRev = sales.filter(s => {
+    const d=new Date(s.date); const now=new Date();
+    const mon=new Date(now); mon.setDate(now.getDate()-now.getDay()+1);
+    return d>=mon;
+  }).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+  const weeklyUnits = sales.filter(s => {
+    const d=new Date(s.date); const now=new Date();
+    const mon=new Date(now); mon.setDate(now.getDate()-now.getDay()+1);
+    return d>=mon;
+  }).reduce((a,s)=>a+s.qty,0);
+
+  const wtEl = document.getElementById('weekly-targets-dash');
+  const wRevPct = Math.min(weeklyRev/tgt.weeklyRev*100, 100);
+  const wUnitPct = Math.min(weeklyUnits/tgt.weeklyUnits*100, 100);
+  const mRevPct = Math.min(monthlyRev/tgt.monthlyRev*100, 100);
+  wtEl.innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-label"><span class="name">Week Revenue</span><span class="pct">${fmtM(weeklyRev)} / ${fmtM(tgt.weeklyRev)}</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${wRevPct}%;background:${wRevPct>=100?'var(--green)':'var(--blue)'}"></div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span class="name">Week Units</span><span class="pct">${weeklyUnits} / ${tgt.weeklyUnits}</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${wUnitPct}%;background:${wUnitPct>=100?'var(--green)':'var(--amber)'}"></div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span class="name">Month Revenue</span><span class="pct">${fmtM(monthlyRev)} / ${fmtM(tgt.monthlyRev)}</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${mRevPct}%;background:${mRevPct>=100?'var(--green)':'var(--blue)'}"></div></div>
+    </div>
+  `;
+
+  // Recent activity
+  const acts = DB.activities().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+  document.getElementById('recent-activity').innerHTML = acts.map(a =>
+    `<div class="activity-item">
+      <div class="activity-dot" style="background:var(--blue)"></div>
+      <div>
+        <div class="activity-date">${a.date} · ${a.type}</div>
+        <div class="activity-account">${a.account}</div>
+        <div class="activity-detail">${a.detail}</div>
+        ${a.outcome?`<div class="activity-outcome">→ ${a.outcome}</div>`:''}
+      </div>
+    </div>`
+  ).join('') || '<div class="text-muted" style="padding:20px;text-align:center">No activities yet</div>';
+
+  document.getElementById('week-label-dash').textContent = `W${weekNum()} · ${new Date().toLocaleString('en',{month:'short',year:'numeric'})}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PIPELINE
+// ═══════════════════════════════════════════════════════════
+function renderPipeline() {
+  const deals = DB.deals();
+  const open = deals.filter(d=>!['Won','Lost'].includes(d.stage));
+  const won = deals.filter(d=>d.stage==='Won');
+  const pipeVal = open.reduce((a,d)=>a+d.value,0);
+  const wonVal = won.reduce((a,d)=>a+d.value,0);
+
+  document.getElementById('pipeline-badge').textContent = open.length;
+  document.getElementById('pipeline-kpis').innerHTML = `
+    <div class="kpi-card" style="--accent:var(--blue)">
+      <div class="kpi-label">Open Pipeline</div>
+      <div class="kpi-value">${fmtM(pipeVal)}</div>
+      <div class="kpi-sub">${open.length} active deals</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--green)">
+      <div class="kpi-label">Won This Period</div>
+      <div class="kpi-value">${fmtM(wonVal)}</div>
+      <div class="kpi-sub">${won.length} deals closed</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--amber)">
+      <div class="kpi-label">Win Rate</div>
+      <div class="kpi-value">${deals.length?(won.length/deals.length*100).toFixed(0):0}%</div>
+      <div class="kpi-sub">${won.length}/${deals.length} deals</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--amber)">
+      <div class="kpi-label">Avg Deal Size</div>
+      <div class="kpi-value">${open.length?fmtM(pipeVal/open.length):'—'}</div>
+      <div class="kpi-sub">Open deals</div>
+    </div>
+  `;
+  renderDeals();
+  renderFunnelFull();
+  renderPipelineChannelChart();
+}
+
+function renderDeals() {
+  const stageF = document.getElementById('filter-stage').value;
+  const deals = DB.deals().filter(d => !stageF || d.stage===stageF)
+    .sort((a,b)=>b.value-a.value);
+  const el = document.getElementById('deal-list');
+  if(!deals.length) { el.innerHTML='<div class="text-muted" style="padding:20px;text-align:center">No deals. Add your first deal!</div>'; return; }
+  el.innerHTML = deals.map(d => `
+    <div class="deal-card">
+      <div class="deal-header">
+        <div>
+          <div class="deal-name">${d.account}</div>
+          <div class="deal-meta">
+            <span>📦 ${d.model} × ${d.qty}</span>
+            <span>🏷️ ${d.tier}</span>
+            <span>📅 Close: ${d.close}</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          ${stageBadge(d.stage)}
+          <div style="font-size:16px;font-weight:700;font-family:var(--mono);margin-top:4px;">${fmtM(d.value)}</div>
+        </div>
+      </div>
+      ${d.notes?`<div class="text-sm text-muted" style="margin-top:4px;">💬 ${d.notes}</div>`:''}
+      <div class="deal-actions">
+        ${['Prospect','Qualified','Proposal Sent','Negotiation'].includes(d.stage)?`<button class="btn btn-green btn-sm" onclick="advanceDeal(${d.id})">→ Advance</button>`:''}
+        <button class="btn btn-outline btn-sm" onclick="editDeal(${d.id})">Edit</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red-dim)" onclick="deleteDeal(${d.id})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFunnelFull() {
+  const stages = ['Prospect','Qualified','Proposal Sent','Negotiation','Won','Lost'];
+  const colors = ['#4A5C73','#3B82F6','#F59E0B','#F97316','#10B981','#EF4444'];
+  const deals = DB.deals();
+  document.getElementById('funnel-full').innerHTML = stages.map((st,i) => {
+    const cnt=deals.filter(d=>d.stage===st).length;
+    const val=deals.filter(d=>d.stage===st).reduce((a,d)=>a+d.value,0);
+    const pct=deals.length?cnt/deals.length*100:0;
+    return `<div class="funnel-stage" style="border-left:3px solid ${colors[i]}">
+      <div style="min-width:28px;text-align:center;font-size:18px;font-weight:700;font-family:var(--mono);color:${colors[i]}">${cnt}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-name">${st}<span class="funnel-val">${fmtM(val)}</span></div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${colors[i]}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPipelineChannelChart() {
+  destroyChart('pipeline-channel');
+  const deals=DB.deals(); const byTier={};
+  deals.forEach(d=>{ byTier[d.tier]=(byTier[d.tier]||0)+d.value; });
+  charts['pipeline-channel'] = new Chart(document.getElementById('chart-pipeline-channel'),{
+    type:'bar',
+    data:{ labels:Object.keys(byTier), datasets:[{label:'Pipeline Value',data:Object.values(byTier),backgroundColor:['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444'],borderRadius:4}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73',callback:v=>fmtM(v)},grid:{color:'#243352'}}},responsive:true,maintainAspectRatio:false}
+  });
+}
+
+function advanceDeal(id) {
+  const order=['Prospect','Qualified','Proposal Sent','Negotiation','Won'];
+  const deals=DB.deals(); const d=deals.find(x=>x.id===id);
+  if(!d) return;
+  const idx=order.indexOf(d.stage);
+  if(idx<order.length-1) d.stage=order[idx+1];
+  DB.save('deals',deals); renderDeals(); renderFunnelFull();
+}
+function deleteDeal(id){ const d=DB.deals().filter(x=>x.id!==id); DB.save('deals',d); renderDeals(); renderFunnelFull(); }
+function editDeal(id){ const d=DB.deals().find(x=>x.id===id); if(!d) return; openAddDeal(d); }
+
+// ═══════════════════════════════════════════════════════════
+//  ACCOUNTS
+// ═══════════════════════════════════════════════════════════
+function renderAccounts() {
+  const acts=DB.activities(); const accounts=[...new Set(acts.map(a=>a.account))];
+  // Populate account filter
+  const sel=document.getElementById('filter-account');
+  sel.innerHTML='<option value="">All Accounts</option>'+accounts.map(a=>`<option>${a}</option>`).join('');
+  renderAccountHealth(accounts, acts);
+  renderActivities();
+}
+
+function renderAccountHealth(accounts, acts) {
+  const el=document.getElementById('account-health-table');
+  if(!accounts.length){ el.innerHTML='<div class="text-muted" style="padding:20px;text-align:center">No account activity yet</div>'; return; }
+  el.innerHTML=`<div class="tbl-wrap"><table>
+    <thead><tr><th>Account</th><th>Last Contact</th><th>Activities</th><th>Status</th><th>Next Action</th></tr></thead>
+    <tbody>${accounts.map(acc=>{
+      const accActs=acts.filter(a=>a.account===acc).sort((x,y)=>y.date.localeCompare(x.date));
+      const last=accActs[0]; const daysAgo=last?Math.floor((new Date()-new Date(last.date))/86400000):999;
+      const status=daysAgo<=7?'Active':daysAgo<=21?'Warm':'Cold';
+      const statusBadge=status==='Active'?'badge-green':status==='Warm'?'badge-amber':'badge-red';
+      return `<tr><td style="font-weight:600;color:var(--text-primary)">${acc}</td>
+        <td class="mono">${last?last.date:'Never'}</td>
+        <td>${accActs.length}</td>
+        <td><span class="badge ${statusBadge}">${status}</span></td>
+        <td class="text-sm text-muted">${last?.followup||'—'}</td></tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderActivities() {
+  const accF=document.getElementById('filter-account').value;
+  const acts=DB.activities().filter(a=>!accF||a.account===accF).sort((x,y)=>y.date.localeCompare(x.date));
+  const el=document.getElementById('activity-list');
+  if(!acts.length){ el.innerHTML='<div class="text-muted" style="padding:20px;text-align:center">No activities. Start logging!</div>'; return; }
+  el.innerHTML=acts.map(a=>`
+    <div class="activity-item">
+      <div class="activity-dot" style="background:var(--blue)"></div>
+      <div style="flex:1">
+        <div class="flex-between">
+          <div><span class="activity-date">${a.date}</span> <span class="badge badge-blue" style="font-size:9px">${a.type}</span></div>
+          <button class="btn btn-outline btn-sm" style="font-size:10px;padding:2px 8px" onclick="deleteActivity(${a.id})">✕</button>
+        </div>
+        <div class="activity-account">${a.account} · <span style="font-weight:400;color:var(--text-muted)">${a.contact}</span></div>
+        <div class="activity-detail">${a.detail}</div>
+        ${a.outcome?`<div class="activity-outcome">→ ${a.outcome}</div>`:''}
+        ${a.followup?`<div class="text-sm" style="color:var(--amber);margin-top:2px">⚑ ${a.followup}</div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteActivity(id){ DB.save('activities',DB.activities().filter(a=>a.id!==id)); renderActivities(); }
+
+// ═══════════════════════════════════════════════════════════
+//  PRODUCTS
+// ═══════════════════════════════════════════════════════════
+function renderProducts() {
+  const sales=DB.sales();
+  const totalUnits=sales.reduce((a,s)=>a+s.qty,0);
+  const totalRev=sales.reduce((a,s)=>a+s.unitPrice*s.qty,0);
+  const avgMargin=sales.length?sales.reduce((a,s)=>a+s.margin,0)/sales.length:0;
+  document.getElementById('product-kpis').innerHTML=`
+    <div class="kpi-card" style="--accent:var(--blue)"><div class="kpi-label">Total Units Sold</div><div class="kpi-value">${totalUnits}</div></div>
+    <div class="kpi-card" style="--accent:var(--green)"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtM(totalRev)}</div></div>
+    <div class="kpi-card" style="--accent:var(--amber)"><div class="kpi-label">Avg. Gross Margin</div><div class="kpi-value">${(avgMargin*100).toFixed(1)}%</div></div>
+    <div class="kpi-card" style="--accent:var(--blue)"><div class="kpi-label">SKUs Active</div><div class="kpi-value">${[...new Set(sales.map(s=>s.model))].length}</div></div>
+  `;
+
+  const byModel={};
+  sales.forEach(s=>{
+    if(!byModel[s.model]) byModel[s.model]={units:0,rev:0};
+    byModel[s.model].units+=s.qty; byModel[s.model].rev+=s.unitPrice*s.qty;
+  });
+
+  destroyChart('units');
+  charts['units']=new Chart(document.getElementById('chart-units'),{
+    type:'bar',
+    data:{labels:Object.keys(byModel),datasets:[{label:'Units',data:Object.values(byModel).map(m=>m.units),backgroundColor:['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4'],borderRadius:4}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73'},grid:{color:'#243352'}}},responsive:true,maintainAspectRatio:false}
+  });
+
+  destroyChart('rev-model');
+  charts['rev-model']=new Chart(document.getElementById('chart-rev-model'),{
+    type:'bar',
+    data:{labels:Object.keys(byModel),datasets:[{label:'Revenue',data:Object.values(byModel).map(m=>m.rev),backgroundColor:['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4'],borderRadius:4}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73',callback:v=>fmtM(v)},grid:{color:'#243352'}}},responsive:true,maintainAspectRatio:false}
+  });
+
+  document.getElementById('sales-log-body').innerHTML=sales.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>
+    `<tr><td class="mono">${s.date}</td><td><span class="sku-pill">${s.model}</span></td>
+    <td>${s.qty}</td><td>${s.tier}</td><td class="mono">${fmt(s.unitPrice)}</td>
+    <td class="mono text-green">${fmt(s.unitPrice*s.qty)}</td>
+    <td><span class="badge badge-green">${(s.margin*100).toFixed(1)}%</span></td>
+    <td>${s.account}</td></tr>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MARGIN
+// ═══════════════════════════════════════════════════════════
+function renderMargin() {
+  const sales=DB.sales(); const tgt=DB.targets();
+  const totalRev=sales.reduce((a,s)=>a+s.unitPrice*s.qty,0);
+  const totalMarginVND=sales.reduce((a,s)=>a+s.unitPrice*s.qty*s.margin,0);
+  const avgMargin=sales.length?sales.reduce((a,s)=>a+s.margin,0)/sales.length:0;
+  document.getElementById('margin-kpis').innerHTML=`
+    <div class="kpi-card" style="--accent:var(--blue)"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtM(totalRev)}</div></div>
+    <div class="kpi-card" style="--accent:var(--green)"><div class="kpi-label">Gross Profit</div><div class="kpi-value">${fmtM(totalMarginVND)}</div></div>
+    <div class="kpi-card" style="--accent:var(--green)"><div class="kpi-label">Avg Gross Margin</div><div class="kpi-value">${(avgMargin*100).toFixed(1)}%</div></div>
+    <div class="kpi-card" style="--accent:var(--amber)"><div class="kpi-label">vs Min Floor</div><div class="kpi-value">${avgMargin>=0.05?'✓ Safe':'⚠ Risk'}</div><div class="kpi-sub">Min margin: 5%</div></div>
+  `;
+
+  // Monthly revenue bar
+  destroyChart('monthly-rev');
+  const months=[]; const now=new Date();
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const ms=d.toISOString().split('T')[0]; const me=new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().split('T')[0];
+    const rev=sales.filter(s=>s.date>=ms&&s.date<=me).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+    months.push({label:d.toLocaleString('en',{month:'short'}),rev});
+  }
+  charts['monthly-rev']=new Chart(document.getElementById('chart-monthly-rev'),{
+    type:'bar',
+    data:{labels:months.map(m=>m.label),datasets:[
+      {label:'Revenue',data:months.map(m=>m.rev),backgroundColor:'#3B82F6',borderRadius:4},
+      {label:'Target',data:months.map(()=>tgt.monthlyRev),type:'line',borderColor:'rgba(245,158,11,.7)',borderDash:[5,5],pointRadius:0,fill:false}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#94A3B8',font:{size:11}}}},scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73',callback:v=>fmtM(v)},grid:{color:'#243352'}}},responsive:true,maintainAspectRatio:false}
+  });
+
+  // Margin by channel
+  destroyChart('margin-channel');
+  const byTier={};
+  sales.forEach(s=>{if(!byTier[s.tier])byTier[s.tier]={m:0,c:0}; byTier[s.tier].m+=s.margin; byTier[s.tier].c++;});
+  const tiers=Object.keys(byTier); const margins=tiers.map(t=>(byTier[t].m/byTier[t].c*100).toFixed(1));
+  charts['margin-channel']=new Chart(document.getElementById('chart-margin-channel'),{
+    type:'bar',
+    data:{labels:tiers,datasets:[{label:'Avg Margin %',data:margins,backgroundColor:margins.map(m=>m>=15?'#10B981':m>=10?'#F59E0B':'#EF4444'),borderRadius:4}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73',callback:v=>v+'%'},grid:{color:'#243352'}}},responsive:true,maintainAspectRatio:false}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TARGETS
+// ═══════════════════════════════════════════════════════════
+function renderTargets() {
+  const tgt=DB.targets(); const sales=DB.sales();
+  const ms=monthStart();
+  const monthlyRev=sales.filter(s=>s.date>=ms).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+  const monthlyUnits=sales.filter(s=>s.date>=ms).reduce((a,s)=>a+s.qty,0);
+  const weeklyRev=sales.filter(s=>{const d=new Date(s.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-now.getDay()+1);return d>=mon;}).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+  const weeklyUnits=sales.filter(s=>{const d=new Date(s.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-now.getDay()+1);return d>=mon;}).reduce((a,s)=>a+s.qty,0);
+
+  document.getElementById('target-kpis').innerHTML=`
+    <div class="kpi-card" style="--accent:${weeklyRev>=tgt.weeklyRev?'var(--green)':'var(--blue)'}">
+      <div class="kpi-label">Week Revenue</div><div class="kpi-value">${fmtM(weeklyRev)}</div>
+      <div class="kpi-sub">Target: ${fmtM(tgt.weeklyRev)}</div>
+      <div class="kpi-delta ${weeklyRev>=tgt.weeklyRev?'up':'down'}">${(weeklyRev/tgt.weeklyRev*100).toFixed(0)}%</div>
+    </div>
+    <div class="kpi-card" style="--accent:${monthlyRev>=tgt.monthlyRev?'var(--green)':'var(--blue)'}">
+      <div class="kpi-label">Month Revenue</div><div class="kpi-value">${fmtM(monthlyRev)}</div>
+      <div class="kpi-sub">Target: ${fmtM(tgt.monthlyRev)}</div>
+      <div class="kpi-delta ${monthlyRev>=tgt.monthlyRev?'up':'down'}">${(monthlyRev/tgt.monthlyRev*100).toFixed(0)}%</div>
+    </div>
+    <div class="kpi-card" style="--accent:${monthlyUnits>=tgt.monthlyUnits?'var(--green)':'var(--amber)'}">
+      <div class="kpi-label">Month Units</div><div class="kpi-value">${monthlyUnits}</div>
+      <div class="kpi-sub">Target: ${tgt.monthlyUnits} units</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--amber)">
+      <div class="kpi-label">Q3 Target</div><div class="kpi-value">${fmtM(tgt.q3Rev)}</div>
+      <div class="kpi-sub">Quarterly goal</div>
+    </div>
+  `;
+
+  const mkProg=(label,actual,target,color)=>`
+    <div class="progress-wrap">
+      <div class="progress-label"><span class="name">${label}</span><span class="pct">${typeof actual==='number'&&actual>1000?fmtM(actual):actual} / ${typeof target==='number'&&target>1000?fmtM(target):target}</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.min(actual/target*100,100)}%;background:${color||'var(--blue)'}"></div></div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:3px">${(actual/target*100).toFixed(1)}% achieved</div>
+    </div>
+  `;
+
+  document.getElementById('weekly-progress').innerHTML=
+    mkProg('Revenue',weeklyRev,tgt.weeklyRev,weeklyRev>=tgt.weeklyRev?'var(--green)':'var(--blue)')+
+    mkProg('Units',weeklyUnits,tgt.weeklyUnits,weeklyUnits>=tgt.weeklyUnits?'var(--green)':'var(--amber)');
+
+  document.getElementById('monthly-progress').innerHTML=
+    mkProg('Revenue',monthlyRev,tgt.monthlyRev,monthlyRev>=tgt.monthlyRev?'var(--green)':'var(--blue)')+
+    mkProg('Units',monthlyUnits,tgt.monthlyUnits,monthlyUnits>=tgt.monthlyUnits?'var(--green)':'var(--amber)')+
+    mkProg('New Accounts',DB.activities().filter(a=>a.date>=ms).length,tgt.accounts,'var(--blue)');
+
+  // Quarterly roadmap
+  destroyChart('quarterly');
+  const months2=[]; const qStart=new Date(); qStart.setMonth(6,1);
+  for(let i=0;i<3;i++){
+    const d=new Date(qStart); d.setMonth(qStart.getMonth()+i);
+    const ms2=d.toISOString().split('T')[0]; const me2=new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().split('T')[0];
+    const rev=sales.filter(s=>s.date>=ms2&&s.date<=me2).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+    months2.push({label:d.toLocaleString('en',{month:'long'}),rev,target:tgt.monthlyRev});
+  }
+  charts['quarterly']=new Chart(document.getElementById('chart-quarterly'),{
+    type:'bar',
+    data:{labels:months2.map(m=>m.label),datasets:[
+      {label:'Actual Revenue',data:months2.map(m=>m.rev),backgroundColor:'#3B82F6',borderRadius:6},
+      {label:'Monthly Target',data:months2.map(m=>m.target),backgroundColor:'rgba(245,158,11,.2)',borderColor:'rgba(245,158,11,.7)',borderWidth:2,type:'bar',borderRadius:6}
+    ]},
+    options:{plugins:{legend:{labels:{color:'#94A3B8',font:{size:11}}}},scales:{x:{ticks:{color:'#4A5C73'}},y:{ticks:{color:'#4A5C73',callback:v=>fmtM(v)},grid:{color:'#243352'}}},responsive:true,maintainAspectRatio:false}
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════════
+function renderHistory() {
+  const reports=DB.reports().sort((a,b)=>b.saved.localeCompare(a.saved));
+  const el=document.getElementById('history-body'); const empty=document.getElementById('history-empty');
+  if(!reports.length){ el.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  el.innerHTML=reports.map((r,i)=>`
+    <tr>
+      <td class="mono">W${r.week}</td>
+      <td>${r.period}</td>
+      <td class="mono text-green">${r.rev?fmtM(Number(r.rev)):'—'}</td>
+      <td>${r.units||'—'}</td>
+      <td class="text-muted">${(r.issues||'').substring(0,60)}${r.issues?.length>60?'...':''}</td>
+      <td class="mono text-muted">${r.saved?.split('T')[0]}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="loadReport(${i})">View</button></td>
+    </tr>
+  `).join('');
+}
+
+function loadReport(i) {
+  const r=DB.reports().sort((a,b)=>b.saved.localeCompare(a.saved))[i];
+  if(!r) return;
+  document.getElementById('rpt-period').value=r.period||'';
+  document.getElementById('rpt-date').value=r.date||'';
+  document.getElementById('rpt-rev').value=r.rev||'';
+  document.getElementById('rpt-units').value=r.units||'';
+  document.getElementById('rpt-issues').value=r.issues||'';
+  document.getElementById('rpt-plan').value=r.plan||'';
+  document.getElementById('rpt-support').value=r.support||'';
+  showPanel('weekly');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WEEKLY REPORT GENERATOR
+// ═══════════════════════════════════════════════════════════
+function getAccountRows() {
+  return [...document.querySelectorAll('#rpt-accounts-body tr')].map(tr => {
+    const cells=[...tr.querySelectorAll('input,select')].map(i=>i.value);
+    return cells;
+  }).filter(r=>r[0]||r[1]);
+}
+
+function getPipelineRows() {
+  return [...document.querySelectorAll('#rpt-pipeline-body tr')].map(tr => {
+    const cells=[...tr.querySelectorAll('input,select')].map(i=>i.value);
+    return cells;
+  }).filter(r=>r[0]);
+}
+
+function generateReport() {
+  const tgt=DB.targets(); const sales=DB.sales();
+  const ms=monthStart();
+  const monthlyRev=sales.filter(s=>s.date>=ms).reduce((a,s)=>a+s.unitPrice*s.qty,0);
+  const monthlyUnits=sales.filter(s=>s.date>=ms).reduce((a,s)=>a+s.qty,0);
+  const period=document.getElementById('rpt-period').value||'[period]';
+  const datePrep=document.getElementById('rpt-date').value||today();
+  const rev=Number(document.getElementById('rpt-rev').value)||0;
+  const units=Number(document.getElementById('rpt-units').value)||0;
+  const issues=document.getElementById('rpt-issues').value||'None to report.';
+  const plan=document.getElementById('rpt-plan').value||'See pipeline.';
+  const support=document.getElementById('rpt-support').value||'None at this time.';
+  const accRows=getAccountRows();
+  const pipeRows=getPipelineRows();
+  const pipeTotal=DB.deals().filter(d=>!['Won','Lost'].includes(d.stage)).reduce((a,d)=>a+d.value,0);
+  const openDeals=DB.deals().filter(d=>!['Won','Lost'].includes(d.stage)).length;
+
+  const accTable=accRows.length?accRows.map(r=>`  | ${r.join(' | ')} |`).join('\n'):'  (No meetings this week)';
+  const pipeTable=pipeRows.length?pipeRows.map(r=>`  | ${r.join(' | ')} |`).join('\n'):'  (No active pipeline entries)';
+
+  const email=`Subject: [Weekly Sales Report] ViewLife AIO · ${period}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    REMANN CO., LTD. — VIEWLIFE SALES DIVISION
+    Weekly Sales Meeting Report
+    Prepared by: Nguyen Ngoc Huyen | Sales Manager
+    Period: ${period} | Date: ${datePrep}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 WEEK AT A GLANCE
+  Revenue This Week  : ${rev>0?fmtM(rev):'[update]'}
+  Units Sold         : ${units>0?units+'u':'[update]'}
+  Weekly Target      : ${fmtM(tgt.weeklyRev)} / ${tgt.weeklyUnits}u
+  Month-to-Date Rev  : ${fmtM(monthlyRev)} (${(monthlyRev/tgt.monthlyRev*100).toFixed(0)}% of ${fmtM(tgt.monthlyRev)} target)
+  Month-to-Date Units: ${monthlyUnits}u / ${tgt.monthlyUnits}u target
+  Open Pipeline      : ${fmtM(pipeTotal)} (${openDeals} deals)
+
+────────────────────────────────────────────────
+1. KEY ACCOUNT ACTIVITY
+────────────────────────────────────────────────
+${accTable}
+
+────────────────────────────────────────────────
+2. SALES PIPELINE (OPEN DEALS)
+────────────────────────────────────────────────
+${pipeTable}
+
+  Total Open Pipeline: ${fmtM(pipeTotal)} across ${openDeals} active deals
+
+────────────────────────────────────────────────
+3. ISSUES & CHALLENGES
+────────────────────────────────────────────────
+${issues}
+
+────────────────────────────────────────────────
+4. PLAN FOR NEXT WEEK
+────────────────────────────────────────────────
+${plan}
+
+────────────────────────────────────────────────
+5. SUPPORT REQUESTED (CEO / OTHER DEPTS.)
+────────────────────────────────────────────────
+${support}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nguyen Ngoc Huyen · Sales Manager, AIO Division
+REMANn Co., Ltd. — ViewLife
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  document.getElementById('email-preview').textContent=email;
+  return email;
+}
+
+function sendEmail() {
+  const email=generateReport();
+  const to=document.getElementById('ceo-email').value||'';
+  const cc=document.getElementById('cc-email').value||'';
+  const period=document.getElementById('rpt-period').value||'';
+  const subject=encodeURIComponent(`[Weekly Sales Report] ViewLife AIO · ${period}`);
+  const body=encodeURIComponent(email);
+  const ccPart=cc?`&cc=${encodeURIComponent(cc)}`:'';
+  window.open(`mailto:${encodeURIComponent(to)}?subject=${subject}${ccPart}&body=${body}`,'_blank');
+}
+
+function saveReport() {
+  const reports=DB.reports();
+  reports.push({
+    week:weekNum(), period:document.getElementById('rpt-period').value,
+    date:document.getElementById('rpt-date').value,
+    rev:document.getElementById('rpt-rev').value,
+    units:document.getElementById('rpt-units').value,
+    issues:document.getElementById('rpt-issues').value,
+    plan:document.getElementById('rpt-plan').value,
+    support:document.getElementById('rpt-support').value,
+    saved:new Date().toISOString()
+  });
+  DB.save('reports',reports);
+  alert('✅ Report saved to history!');
+}
+
+function printReport() {
+  const email=generateReport();
+  const win=window.open('','_blank');
+  win.document.write(`<html><head><title>Weekly Report</title>
+  <style>body{font-family:monospace;white-space:pre-wrap;padding:30px;font-size:13px;}</style>
+  </head><body>${email.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</body></html>`);
+  win.print();
+}
+
+function loadLastWeek() {
+  const reports=DB.reports().sort((a,b)=>b.saved.localeCompare(a.saved));
+  if(!reports.length){ alert('No saved reports found.'); return; }
+  loadReport(0);
+}
+
+function addAccountRow() {
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input type="text" placeholder="Date" style="width:70px;padding:4px;"></td>
+    <td><input type="text" placeholder="Account" style="width:90px;padding:4px;"></td>
+    <td><input type="text" placeholder="Meeting detail" style="width:140px;padding:4px;"></td>
+    <td><input type="text" placeholder="Outcome" style="width:140px;padding:4px;"></td>
+    <td><input type="text" placeholder="Next step" style="width:120px;padding:4px;"></td>
+    <td><button class="btn btn-outline btn-sm" onclick="this.closest('tr').remove()">✕</button></td>`;
+  document.getElementById('rpt-accounts-body').appendChild(tr);
+}
+
+function addPipelineRow() {
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input type="text" placeholder="Account" style="width:100px;padding:4px;"></td>
+    <td><input type="text" placeholder="Model × Qty" style="width:110px;padding:4px;"></td>
+    <td><input type="text" placeholder="Value VND" style="width:110px;padding:4px;"></td>
+    <td><select style="width:110px;padding:4px;"><option>Prospect</option><option>Qualified</option><option>Proposal Sent</option><option>Negotiation</option></select></td>
+    <td><input type="text" placeholder="Close date" style="width:80px;padding:4px;"></td>
+    <td><button class="btn btn-outline btn-sm" onclick="this.closest('tr').remove()">✕</button></td>`;
+  document.getElementById('rpt-pipeline-body').appendChild(tr);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+let editingDealId=null;
+function openAddDeal(deal) {
+  editingDealId=deal?.id||null;
+  if(deal){
+    document.getElementById('d-account').value=deal.account||'';
+    document.getElementById('d-contact').value=deal.contact||'';
+    document.getElementById('d-model').value=deal.model||'1315U';
+    document.getElementById('d-qty').value=deal.qty||'';
+    document.getElementById('d-tier').value=deal.tier||'Authorized';
+    document.getElementById('d-stage').value=deal.stage||'Prospect';
+    document.getElementById('d-value').value=deal.value||'';
+    document.getElementById('d-close').value=deal.close||'';
+    document.getElementById('d-notes').value=deal.notes||'';
+  } else {
+    ['d-account','d-contact','d-qty','d-value','d-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('d-close').value=today();
+  }
+  openModal('modal-deal');
+}
+
+function saveDeal() {
+  const deals=DB.deals();
+  const deal={
+    id:editingDealId||Date.now(), account:document.getElementById('d-account').value,
+    contact:document.getElementById('d-contact').value, model:document.getElementById('d-model').value,
+    qty:Number(document.getElementById('d-qty').value), tier:document.getElementById('d-tier').value,
+    stage:document.getElementById('d-stage').value, value:Number(document.getElementById('d-value').value),
+    close:document.getElementById('d-close').value, notes:document.getElementById('d-notes').value,
+    created:today()
+  };
+  if(editingDealId) { const i=deals.findIndex(d=>d.id===editingDealId); deals[i]=deal; }
+  else deals.push(deal);
+  DB.save('deals',deals); closeModal('modal-deal'); renderDeals(); renderFunnelFull();
+  document.getElementById('pipeline-badge').textContent=DB.deals().filter(d=>!['Won','Lost'].includes(d.stage)).length;
+}
+
+function openAddActivity() {
+  ['a-account','a-contact','a-detail','a-outcome','a-followup'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-date').value=today();
+  openModal('modal-activity');
+}
+
+function saveActivity() {
+  const acts=DB.activities();
+  acts.push({
+    id:Date.now(), date:document.getElementById('a-date').value,
+    account:document.getElementById('a-account').value, contact:document.getElementById('a-contact').value,
+    type:document.getElementById('a-type').value, detail:document.getElementById('a-detail').value,
+    outcome:document.getElementById('a-outcome').value, followup:document.getElementById('a-followup').value,
+    created:today()
+  });
+  DB.save('activities',acts); closeModal('modal-activity'); renderActivities();
+}
+
+function openAddSale() {
+  ['s-qty','s-price','s-account'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-date').value=today();
+  openModal('modal-sale');
+}
+
+function saveSale() {
+  const modelMargins={G5400:0.191,'N5095-TOUCH':0.17,'1315U':0.189,'1345U':0.191,'1345U-Black':0.191,'1345U-Black 512':0.19};
+  const model=document.getElementById('s-model').value;
+  const sales=DB.sales();
+  sales.push({
+    id:Date.now(), date:document.getElementById('s-date').value,
+    model, qty:Number(document.getElementById('s-qty').value),
+    unitPrice:Number(document.getElementById('s-price').value),
+    tier:document.getElementById('s-tier').value,
+    account:document.getElementById('s-account').value,
+    margin:modelMargins[model]||0.15, created:today()
+  });
+  DB.save('sales',sales); closeModal('modal-sale'); renderProducts();
+}
+
+function openTargetModal() {
+  const tgt=DB.targets();
+  document.getElementById('t-weekly-rev').value=tgt.weeklyRev||'';
+  document.getElementById('t-weekly-units').value=tgt.weeklyUnits||'';
+  document.getElementById('t-monthly-rev').value=tgt.monthlyRev||'';
+  document.getElementById('t-monthly-units').value=tgt.monthlyUnits||'';
+  document.getElementById('t-q3-rev').value=tgt.q3Rev||'';
+  document.getElementById('t-accounts').value=tgt.accounts||'';
+  openModal('modal-targets');
+}
+
+function saveTargets() {
+  DB.save('targets',{
+    weeklyRev:Number(document.getElementById('t-weekly-rev').value),
+    weeklyUnits:Number(document.getElementById('t-weekly-units').value),
+    monthlyRev:Number(document.getElementById('t-monthly-rev').value),
+    monthlyUnits:Number(document.getElementById('t-monthly-units').value),
+    q3Rev:Number(document.getElementById('t-q3-rev').value),
+    accounts:Number(document.getElementById('t-accounts').value)
+  });
+  closeModal('modal-targets'); renderTargets();
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+(function init() {
+  DB.seed();
+  document.getElementById('current-week').textContent=`W${weekNum()} · ${new Date().toLocaleString('en',{month:'short',year:'numeric'})}`;
+  document.getElementById('rpt-date').value=today();
+  renderDashboard();
+  document.getElementById('pipeline-badge').textContent=DB.deals().filter(d=>!['Won','Lost'].includes(d.stage)).length;
+})();
+</script>
+</body>
+</html>
